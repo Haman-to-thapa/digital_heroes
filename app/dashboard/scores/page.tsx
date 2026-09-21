@@ -24,6 +24,7 @@ export default function ScoresPage() {
   const [message, setMessage] = useState("");
   const [userRole, setUserRole] = useState("user");
   const [userId, setUserId] = useState<string | null>(null);
+  const [isSubscribed, setIsSubscribed] = useState(false);
 
   // Fetch scores without resetting the full loading state (avoids page re-render)
   async function refreshScores(uid: string) {
@@ -50,18 +51,28 @@ export default function ScoresPage() {
 
     setUserId(user.id);
 
-    const [profileRes, scoresRes] = await Promise.all([
+    const [profileRes, scoresRes, subRes] = await Promise.all([
       supabase.from("profiles").select("role").eq("id", user.id).single(),
       supabase
         .from("scores")
         .select("id, score, score_date")
         .eq("user_id", user.id)
         .order("score_date", { ascending: false }),
+      supabase
+        .from("subscriptions")
+        .select("status")
+        .eq("user_id", user.id)
+        .eq("status", "active")
+        .limit(1)
+        .maybeSingle(),
     ]);
 
     if (profileRes.data?.role) {
       setUserRole(profileRes.data.role);
     }
+
+    const isVip = !!subRes.data || profileRes.data?.role === "admin";
+    setIsSubscribed(isVip);
 
     if (scoresRes.error) {
       setMessage(scoresRes.error.message);
@@ -136,9 +147,10 @@ export default function ScoresPage() {
       return;
     }
 
-    // PRD: Retain latest 5 only, delete older ones
-    if (updatedScores && updatedScores.length > 5) {
-      const scoresToDelete = updatedScores.slice(5);
+    // PRD & VIP Tier Rule: Retain latest maxAllowed only (10 for VIP Hero, 5 for Standard)
+    const maxAllowed = isSubscribed || userRole === "admin" ? 10 : 5;
+    if (updatedScores && updatedScores.length > maxAllowed) {
+      const scoresToDelete = updatedScores.slice(maxAllowed);
       for (const oldScore of scoresToDelete) {
         await supabase
           .from("scores")
@@ -302,6 +314,96 @@ export default function ScoresPage() {
           </div>
         )}
 
+        {/* VIP Hero 10-Score Capacity & Analytics Banner */}
+        {isSubscribed || userRole === "admin" ? (
+          <div className="overflow-hidden rounded-3xl border-2 border-amber-500/40 bg-gradient-to-br from-amber-500/10 via-emerald-500/10 to-teal-500/5 p-6 shadow-sm dark:border-amber-500/30 dark:bg-[#0c121e]">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-linear-to-r from-amber-500/20 to-emerald-500/20 px-3 py-0.5 text-xs font-black uppercase tracking-wider text-amber-700 dark:text-amber-300 border border-amber-500/30 shadow-xs">
+                    <span>⭐</span> VIP HERO BENEFIT
+                  </span>
+                  <span className="rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-[10px] font-extrabold text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
+                    10-Score Capacity Active ✓
+                  </span>
+                </div>
+                <h2 className="text-xl font-black text-slate-900 dark:text-white sm:text-2xl">
+                  VIP 10-Round Performance & Draw Slots
+                </h2>
+                <p className="mt-1 text-xs text-slate-600 dark:text-slate-400 max-w-xl leading-relaxed">
+                  As an active VIP Hero, you can store up to <strong>10 golf scores</strong> (Standard users are limited to 5). This lets you track your handicap trends, save more course rounds, and maximize your chances in the monthly sweepstakes draw!
+                </p>
+              </div>
+
+              <div className="shrink-0 flex sm:flex-col items-end gap-1.5">
+                <span className="text-3xl font-black text-emerald-600 dark:text-emerald-400">
+                  {scores.length} <span className="text-lg font-bold text-slate-400">/ 10</span>
+                </span>
+                <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                  VIP Slots Used
+                </span>
+              </div>
+            </div>
+
+            {/* 4 VIP Analytics Metrics */}
+            <div className="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 border-t border-slate-200/60 dark:border-slate-800/60">
+              <div className="rounded-xl bg-white/70 p-3 dark:bg-slate-900/60 border border-slate-200/50 dark:border-slate-800">
+                <span className="text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400">Rounds Logged</span>
+                <p className="text-base font-black text-slate-900 dark:text-white mt-0.5">{scores.length} / 10</p>
+              </div>
+              <div className="rounded-xl bg-white/70 p-3 dark:bg-slate-900/60 border border-slate-200/50 dark:border-slate-800">
+                <span className="text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400">Average Score</span>
+                <p className="text-base font-black text-emerald-600 dark:text-emerald-400 mt-0.5">
+                  {scores.length > 0 ? (scores.reduce((a, b) => a + b.score, 0) / scores.length).toFixed(1) : "—"} pts
+                </p>
+              </div>
+              <div className="rounded-xl bg-white/70 p-3 dark:bg-slate-900/60 border border-slate-200/50 dark:border-slate-800">
+                <span className="text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400">Personal Best</span>
+                <p className="text-base font-black text-amber-600 dark:text-amber-400 mt-0.5">
+                  {scores.length > 0 ? Math.max(...scores.map((s) => s.score)) : "—"} pts
+                </p>
+              </div>
+              <div className="rounded-xl bg-white/70 p-3 dark:bg-slate-900/60 border border-slate-200/50 dark:border-slate-800">
+                <span className="text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400">Jackpot Entry</span>
+                <p className="text-base font-black text-purple-600 dark:text-purple-400 mt-0.5">
+                  {scores.length >= 5 ? "Eligible (5+ Scores) ✅" : `Needs ${5 - scores.length} more`}
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : (
+          /* Standard User Upgrade Prompt */
+          <div className="overflow-hidden rounded-2xl border border-amber-300 bg-amber-50/70 p-5 dark:border-amber-900/50 dark:bg-amber-950/30">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-500/20 text-lg">
+                  ⭐
+                </span>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-extrabold text-amber-950 dark:text-amber-200">
+                      Standard Limit: 5 Scores (Upgrade for 10 Scores)
+                    </h3>
+                    <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-[9px] font-extrabold text-amber-800 dark:text-amber-300">
+                      VIP Hero
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs text-amber-800/90 dark:text-amber-300/80 leading-relaxed">
+                    Free accounts can save up to 5 golf rounds. Subscribe to VIP Hero (₹100/mo) to unlock <strong>10 score slots</strong>, handicap analytics, and monthly jackpot draws!
+                  </p>
+                </div>
+              </div>
+
+              <Link
+                href="/dashboard/subscription"
+                className="inline-flex items-center justify-center rounded-xl bg-amber-600 px-4 py-2 text-xs font-bold text-white shadow-xs transition hover:bg-amber-500 shrink-0"
+              >
+                ⭐ Unlock 10 Scores &rarr;
+              </Link>
+            </div>
+          </div>
+        )}
+
         {/* Form Card (Add / Edit) */}
         <div className="rounded-2xl border border-gray-200/80 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between">
@@ -401,14 +503,36 @@ export default function ScoresPage() {
                 Your Scores
               </h2>
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                Latest 5 scores retained (Newest first)
+                {isSubscribed || userRole === "admin"
+                  ? "Latest 10 scores retained (VIP Hero Tier • Newest first)"
+                  : "Latest 5 scores retained (Standard Tier • Newest first)"}
               </p>
             </div>
 
-            <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700 dark:bg-gray-800 dark:text-gray-300">
-              {scores.length} / 5 slots
+            <span
+              className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                isSubscribed || userRole === "admin"
+                  ? "bg-amber-100 text-amber-900 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-500/30 font-bold"
+                  : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+              }`}
+            >
+              {scores.length} / {isSubscribed || userRole === "admin" ? 10 : 5} slots
             </span>
           </div>
+
+          {!isSubscribed && userRole !== "admin" && scores.length >= 5 && (
+            <div className="mt-4 rounded-xl border border-amber-300 bg-amber-50/80 p-3.5 dark:border-amber-900/50 dark:bg-amber-950/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="text-xs text-amber-900 dark:text-amber-200">
+                <span className="font-extrabold">All 5 Standard slots filled.</span> Upgrading to <strong>VIP Hero</strong> will unlock <strong>10 score slots</strong> and track your full handicap history!
+              </div>
+              <Link
+                href="/dashboard/subscription"
+                className="rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-extrabold text-white shrink-0 hover:bg-amber-500 text-center"
+              >
+                Upgrade to 10 Slots (₹100/mo) &rarr;
+              </Link>
+            </div>
+          )}
 
           <div className="mt-4 space-y-3">
             {scores.length === 0 ? (

@@ -90,7 +90,7 @@ export default function DashboardPage() {
           .select("score, score_date")
           .eq("user_id", user.id)
           .order("score_date", { ascending: false })
-          .limit(5),
+          .limit(10),
         supabase
           .from("draw_entries")
           .select("*", { count: "exact", head: true })
@@ -780,11 +780,18 @@ export default function DashboardPage() {
 
           {/* Card 3: Golf Scores */}
           <div className="rounded-2xl border border-gray-200/80 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-            <p className="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-              Golf Scores
-            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                Golf Scores
+              </p>
+              {isActive && (
+                <span className="rounded-md bg-amber-500/15 px-1.5 py-0.5 text-[9px] font-extrabold text-amber-700 dark:text-amber-300 border border-amber-500/30">
+                  10 Max (VIP)
+                </span>
+              )}
+            </div>
             <h2 className="mt-2 text-xl font-bold text-gray-900 dark:text-white">
-              {scoreCount} / 5
+              {scoreCount} / {isActive || profile?.role === "admin" ? 10 : 5}
             </h2>
             <p className="mt-1 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
               {latestScore !== null
@@ -808,7 +815,7 @@ export default function DashboardPage() {
               {drawCount}
             </h2>
             <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              {scoreCount === 5 ? "Eligible for next draw ✅" : "Needs 5 Scores"}
+              {scoreCount >= 5 ? "Eligible for next draw ✅" : `Needs ${5 - scoreCount} More`}
             </p>
             <Link
               href="/dashboard/draw"
@@ -849,16 +856,16 @@ export default function DashboardPage() {
                   <span>⭐</span> VIP HERO PRIVILEGES
                 </span>
                 <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
-                  {isActive ? "6 / 6 Facilities Active" : "Requires VIP Membership"}
+                  {isActive ? "8 / 8 Facilities Active" : "Requires VIP Membership"}
                 </span>
               </div>
               <h2 className="mt-1 text-2xl font-black tracking-tight text-slate-900 dark:text-white">
-                {isActive ? "Your VIP Member Privileges & Facilities" : "Unlock All 6 VIP Member Facilities"}
+                {isActive ? "Your VIP Member Privileges & Facilities" : "Unlock All 8 VIP Member Facilities"}
               </h2>
               <p className="text-xs text-slate-500 dark:text-slate-400">
                 {isActive
-                  ? "As an active subscriber, you have full privileges to submit scores, enter sweepstakes draws, win cash jackpots, and give back to society."
-                  : "Upgrade to VIP Hero for ₹100/mo to unlock full lottery sweepstakes eligibility, scorecard verification, and direct prize payouts."}
+                  ? "As an active subscriber, you have full privileges to submit up to 10 scores, enter sweepstakes draws, win cash jackpots, and give back to society."
+                  : "Upgrade to VIP Hero for ₹100/mo to unlock 10 score slots, full lottery sweepstakes eligibility, scorecard verification, and direct prize payouts."}
               </p>
             </div>
 
@@ -912,7 +919,7 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* PERK 2: 5-SCORE QUALIFYING JACKPOT ENGINE */}
+            {/* PERK 2: 10-SCORE QUALIFYING JACKPOT ENGINE */}
             <div className="flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900">
               <div>
                 <div className="flex items-center justify-between">
@@ -921,24 +928,24 @@ export default function DashboardPage() {
                   </span>
                   <span
                     className={`rounded-full px-2 py-0.5 text-[10px] font-extrabold uppercase ${
-                      scoreCount === 5
+                      scoreCount >= 5
                         ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
                         : "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300"
                     }`}
                   >
-                    {scoreCount === 5 ? "5/5 Qualified ✓" : `${scoreCount}/5 Scores`}
+                    {scoreCount >= 5 ? `${scoreCount}/10 Qualified ✓` : `${scoreCount}/5 Scores`}
                   </span>
                 </div>
                 <h3 className="mt-3 text-base font-black text-slate-900 dark:text-white">
-                  5-Score Jackpot Engine
+                  10-Score VIP Jackpot Engine
                 </h3>
                 <p className="mt-1.5 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                  Log 5 official golf scores. Match 3 numbers for 25% pool share, 4 numbers for 35% pool share, or 5 numbers for the 40% Grand Jackpot.
+                  VIP members unlock 10 score slots (double the 5-slot standard limit). Enter up to 10 rounds to track full handicap history and maximize your chances of hitting the 3, 4, or 5-match jackpot!
                 </p>
               </div>
               <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center text-xs">
                 <span className="font-semibold text-slate-500 dark:text-slate-400">
-                  {5 - scoreCount > 0 ? `Needs ${5 - scoreCount} more score(s)` : "Fully qualified"}
+                  {scoreCount >= 5 ? `${scoreCount} rounds logged` : `Needs ${5 - scoreCount} more score(s)`}
                 </span>
                 <Link href="/dashboard/scores" className="font-bold text-emerald-600 hover:underline dark:text-emerald-400">
                   Log Score &rarr;
@@ -1070,6 +1077,74 @@ export default function DashboardPage() {
                 </span>
                 <Link href="/dashboard/winnings" className="font-bold text-slate-700 hover:underline dark:text-slate-300">
                   View Winnings &rarr;
+                </Link>
+              </div>
+            </div>
+
+            {/* PERK 7: HANDICAP & PERFORMANCE ANALYTICS */}
+            <div className="flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+              <div>
+                <div className="flex items-center justify-between">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-cyan-500/10 text-lg">
+                    📈
+                  </span>
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-[10px] font-extrabold uppercase ${
+                      isActive
+                        ? "bg-cyan-100 text-cyan-800 dark:bg-cyan-950/60 dark:text-cyan-300"
+                        : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400"
+                    }`}
+                  >
+                    {isActive ? "Analytics Active ✓" : "VIP Feature"}
+                  </span>
+                </div>
+                <h3 className="mt-3 text-base font-black text-slate-900 dark:text-white">
+                  Handicap & Round Analytics
+                </h3>
+                <p className="mt-1.5 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                  VIP members get automated scoring averages, personal best round badges, and handicap consistency trend tracking.
+                </p>
+              </div>
+              <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center text-xs">
+                <span className="font-semibold text-cyan-600 dark:text-cyan-400">
+                  {isActive ? "Tracking Enabled" : "Unlock with VIP"}
+                </span>
+                <Link href="/dashboard/scores" className="font-bold text-slate-700 hover:underline dark:text-slate-300">
+                  View Analytics &rarr;
+                </Link>
+              </div>
+            </div>
+
+            {/* PERK 8: 0% PLATFORM COMMISSION */}
+            <div className="flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+              <div>
+                <div className="flex items-center justify-between">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/10 text-lg">
+                    💎
+                  </span>
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-[10px] font-extrabold uppercase ${
+                      isActive
+                        ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
+                        : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400"
+                    }`}
+                  >
+                    {isActive ? "100% Payout ✓" : "Standard Fee"}
+                  </span>
+                </div>
+                <h3 className="mt-3 text-base font-black text-slate-900 dark:text-white">
+                  0% Platform Commission
+                </h3>
+                <p className="mt-1.5 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                  VIP members keep 100% of non-charity cash winnings. Zero processing fees or platform maintenance deductions on prize disbursements.
+                </p>
+              </div>
+              <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center text-xs">
+                <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+                  VIP Payout Privilege
+                </span>
+                <Link href="/dashboard/winnings" className="font-bold text-slate-700 hover:underline dark:text-slate-300">
+                  Payout Status &rarr;
                 </Link>
               </div>
             </div>

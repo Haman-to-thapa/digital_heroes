@@ -46,7 +46,7 @@ export default function DrawPage() {
           .select("score, score_date")
           .eq("user_id", user.id)
           .order("score_date", { ascending: false })
-          .limit(5),
+          .limit(10),
         supabase
           .from("draws")
           .select("id")
@@ -133,8 +133,8 @@ export default function DrawPage() {
       }
     }
 
-    if (scores.length !== 5) {
-      setMessage("You need exactly 5 scores to enter the draw.");
+    if (scores.length < 5) {
+      setMessage(`You need at least 5 scores to enter the draw (currently ${scores.length}/5). Log more rounds in Golf Scores.`);
       setIsSuccess(false);
       setSubmitting(false);
       return;
