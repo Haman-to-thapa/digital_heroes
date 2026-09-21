@@ -16,12 +16,19 @@ type Charity = {
   name: string;
 };
 
+type Subscription = {
+  status: string;
+  plan_type: string;
+  current_period_end: string | null;
+};
+
 export default function DashboardPage() {
   const supabase = createClient();
   const router = useRouter();
 
   const [profile, setProfile] = useState<Profile | null>(null);
   const [charity, setCharity] = useState<Charity | null>(null);
+  const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [scoresCount, setScoresCount] = useState<number>(0);
   const [loading, setLoading] = useState(true);
 
@@ -36,7 +43,7 @@ export default function DashboardPage() {
         return;
       }
 
-      // Fetch profile with charity info
+      // 1. Fetch profile with charity info
       const { data: profileData } = await supabase
         .from("profiles")
         .select("full_name, role, charity_id, charity_percentage")
@@ -60,7 +67,18 @@ export default function DashboardPage() {
         }
       }
 
-      // Fetch scores count
+      // 2. Fetch live subscription status
+      const { data: subscriptionData } = await supabase
+        .from("subscriptions")
+        .select("status, plan_type, current_period_end")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      setSubscription(subscriptionData);
+
+      // 3. Fetch scores count
       const { count } = await supabase
         .from("scores")
         .select("*", { count: "exact", head: true })
@@ -84,10 +102,12 @@ export default function DashboardPage() {
     );
   }
 
+  const isActive = subscription?.status === "active";
+
   return (
     <main className="min-h-full p-4 sm:p-6 lg:p-8">
       <div className="mx-auto max-w-6xl space-y-6">
-        {/* Profile Card */}
+        {/* Profile Header Card */}
         <div className="rounded-2xl border border-gray-200/80 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900 sm:p-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -119,25 +139,52 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Stats Grid - 5 Cards including Charity */}
+        {/* Stats Grid - 5 Cards including Live Subscription */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-          {/* Card 1: Subscription */}
+          {/* Card 1: Subscription (LIVE FROM SUPABASE) */}
           <div className="rounded-2xl border border-gray-200/80 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-            <p className="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-              Subscription
-            </p>
-            <h2 className="mt-2 text-xl font-bold text-gray-900 dark:text-white">
-              Inactive
-            </h2>
-            <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">
-              Pick a plan to enter
-            </p>
-            <Link
-              href="/dashboard/subscription"
-              className="mt-1 inline-block text-xs font-medium text-emerald-600 hover:underline dark:text-emerald-400"
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                Subscription
+              </p>
+              {isActive && (
+                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              )}
+            </div>
+
+            <h2
+              className={`mt-2 text-xl font-bold capitalize ${
+                isActive
+                  ? "text-emerald-600 dark:text-emerald-400"
+                  : "text-gray-900 dark:text-white"
+              }`}
             >
-              Choose plan &rarr;
-            </Link>
+              {subscription?.status || "Inactive"}
+            </h2>
+
+            {subscription?.plan_type ? (
+              <p className="mt-1 text-xs font-medium capitalize text-gray-600 dark:text-gray-300">
+                {subscription.plan_type} plan
+              </p>
+            ) : (
+              <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">
+                Pick a plan to enter draws
+              </p>
+            )}
+
+            {subscription?.current_period_end ? (
+              <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                Renewal:{" "}
+                {new Date(subscription.current_period_end).toLocaleDateString()}
+              </p>
+            ) : (
+              <Link
+                href="/dashboard/subscription"
+                className="mt-2 inline-block text-xs font-medium text-emerald-600 hover:underline dark:text-emerald-400"
+              >
+                Choose plan &rarr;
+              </Link>
+            )}
           </div>
 
           {/* Card 2: Charity */}
@@ -145,12 +192,21 @@ export default function DashboardPage() {
             <p className="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
               My Charity
             </p>
-            <h2 className="mt-2 text-xl font-bold text-gray-900 dark:text-white truncate" title={charity?.name || "Not selected"}>
+            <h2
+              className="mt-2 text-xl font-bold text-gray-900 dark:text-white truncate"
+              title={charity?.name || "Not selected"}
+            >
               {charity?.name || "Not selected"}
             </h2>
             <p className="mt-1 text-xs text-emerald-600 dark:text-emerald-400">
               Contribution: {profile?.charity_percentage || 10}%
             </p>
+            <Link
+              href="/dashboard/charity"
+              className="mt-2 inline-block text-xs font-medium text-emerald-600 hover:underline dark:text-emerald-400"
+            >
+              Change &rarr;
+            </Link>
           </div>
 
           {/* Card 3: Golf Scores */}
@@ -161,9 +217,12 @@ export default function DashboardPage() {
             <h2 className="mt-2 text-xl font-bold text-gray-900 dark:text-white">
               {scoresCount} / 5
             </h2>
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              Stableford format
+            </p>
             <Link
               href="/dashboard/scores"
-              className="mt-1 inline-block text-xs font-medium text-emerald-600 hover:underline dark:text-emerald-400"
+              className="mt-2 inline-block text-xs font-medium text-emerald-600 hover:underline dark:text-emerald-400"
             >
               Add / View &rarr;
             </Link>
