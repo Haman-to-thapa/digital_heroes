@@ -6,13 +6,49 @@ type Plan = "monthly" | "yearly";
 
 export default function SubscriptionPage() {
   const [selectedPlan, setSelectedPlan] = useState<Plan>("monthly");
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubscribe() {
+    try {
+      setLoading(true);
+
+      const response = await fetch("/api/stripe/create-checkout-session", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          plan: selectedPlan,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(data.error || "Something went wrong");
+        setLoading(false);
+        return;
+      }
+
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        alert("Payment URL was not received.");
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Unable to start payment session.");
+      setLoading(false);
+    }
+  }
 
   return (
     <main className="min-h-full p-4 sm:p-6 lg:p-8">
       <div className="mx-auto max-w-5xl">
         <div className="text-center">
           <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800 dark:bg-emerald-950 dark:text-emerald-400">
-            PRD Step 36
+            PRD Step 40
           </span>
 
           <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
@@ -59,7 +95,7 @@ export default function SubscriptionPage() {
                 Pricing
               </p>
               <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
-                Configured in payment gateway
+                Configured in Stripe Dashboard
               </p>
             </div>
           </button>
@@ -90,7 +126,7 @@ export default function SubscriptionPage() {
             </h2>
 
             <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-              Discounted yearly rate with uninterrupted monthly draw entries.
+              Discounted yearly rate with uninterrupted monthly sweepstakes access.
             </p>
 
             <div className="mt-6 rounded-xl border border-gray-100 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-800/60">
@@ -98,7 +134,7 @@ export default function SubscriptionPage() {
                 Pricing
               </p>
               <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
-                Configured in payment gateway
+                Configured in Stripe Dashboard
               </p>
             </div>
           </button>
@@ -121,9 +157,18 @@ export default function SubscriptionPage() {
 
           <button
             type="button"
-            className="mt-6 rounded-xl bg-emerald-600 px-6 py-3 font-semibold text-white shadow-sm transition hover:bg-emerald-500 cursor-pointer"
+            disabled={loading}
+            onClick={handleSubscribe}
+            className="mt-6 flex items-center justify-center rounded-xl bg-emerald-600 px-6 py-3 font-semibold text-white shadow-sm transition hover:bg-emerald-500 focus:ring-2 focus:ring-emerald-500/20 disabled:opacity-50 cursor-pointer"
           >
-            Continue to Payment &rarr;
+            {loading ? (
+              <div className="flex items-center space-x-2">
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                <span>Redirecting to Stripe...</span>
+              </div>
+            ) : (
+              <span>Continue to Payment &rarr;</span>
+            )}
           </button>
         </div>
       </div>
