@@ -17,6 +17,7 @@ export default function ScoresPage() {
   const [scores, setScores] = useState<Score[]>([]);
   const [score, setScore] = useState("");
   const [scoreDate, setScoreDate] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
@@ -53,7 +54,6 @@ export default function ScoresPage() {
 
   async function handleAddScore(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-
     setMessage("");
 
     const numericScore = Number(score);
@@ -64,7 +64,6 @@ export default function ScoresPage() {
       return;
     }
 
-    // Date validation
     if (!scoreDate) {
       setMessage("Please select a date.");
       return;
@@ -132,6 +131,111 @@ export default function ScoresPage() {
     setSaving(false);
   }
 
+  async function handleUpdateScore(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!editingId) return;
+
+    setMessage("");
+
+    const numericScore = Number(score);
+
+    if (!Number.isInteger(numericScore) || numericScore < 1 || numericScore > 45) {
+      setMessage("Score must be between 1 and 45.");
+      return;
+    }
+
+    if (!scoreDate) {
+      setMessage("Please select a date.");
+      return;
+    }
+
+    setSaving(true);
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+
+    const { error } = await supabase
+      .from("scores")
+      .update({
+        score: numericScore,
+        score_date: scoreDate,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", editingId)
+      .eq("user_id", user.id);
+
+    if (error) {
+      if (error.code === "23505") {
+        setMessage("You already have a score for this date.");
+      } else {
+        setMessage(error.message);
+      }
+      setSaving(false);
+      return;
+    }
+
+    setEditingId(null);
+    setScore("");
+    setScoreDate("");
+    setMessage("Score updated successfully.");
+
+    await fetchScores();
+    setSaving(false);
+  }
+
+  function startEdit(item: Score) {
+    setEditingId(item.id);
+    setScore(String(item.score));
+    setScoreDate(item.score_date);
+    setMessage("");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
+    setScore("");
+    setScoreDate("");
+    setMessage("");
+  }
+
+  async function handleDelete(id: string) {
+    const confirmed = window.confirm("Are you sure you want to delete this score?");
+    if (!confirmed) return;
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+
+    const { error } = await supabase
+      .from("scores")
+      .delete()
+      .eq("id", id)
+      .eq("user_id", user.id);
+
+    if (error) {
+      setMessage(error.message);
+      return;
+    }
+
+    if (editingId === id) {
+      cancelEdit();
+    }
+
+    setMessage("Score deleted successfully.");
+    await fetchScores();
+  }
+
   if (loading) {
     return (
       <main className="min-h-[80vh] flex items-center justify-center">
@@ -146,24 +250,28 @@ export default function ScoresPage() {
   return (
     <main className="min-h-full p-4 sm:p-6 lg:p-8">
       <div className="mx-auto max-w-4xl space-y-6">
-        {/* Add Score Card */}
+        {/* Form Card (Add / Edit) */}
         <div className="rounded-2xl border border-gray-200/80 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-3xl">
-                Golf Scores ⛳
+                {editingId ? "Edit Golf Score ✏️" : "Golf Scores ⛳"}
               </h1>
               <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                Add your latest Stableford score (Range: 1 – 45).
+                {editingId
+                  ? "Modify your existing score and date."
+                  : "Add your latest Stableford score (Range: 1 – 45)."}
               </p>
             </div>
-            <span className="hidden sm:inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400">
-              PRD Validated
-            </span>
+            {editingId && (
+              <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800 dark:bg-amber-950/60 dark:text-amber-400">
+                Editing Mode
+              </span>
+            )}
           </div>
 
           <form
-            onSubmit={handleAddScore}
+            onSubmit={editingId ? handleUpdateScore : handleAddScore}
             className="mt-6 grid gap-4 sm:grid-cols-3"
           >
             <div>
@@ -195,14 +303,28 @@ export default function ScoresPage() {
               />
             </div>
 
-            <div className="flex items-end">
+            <div className="flex items-end gap-2">
               <button
                 type="submit"
                 disabled={saving}
-                className="w-full rounded-xl bg-emerald-600 px-4 py-2.5 font-medium text-white shadow-sm transition hover:bg-emerald-500 focus:ring-2 focus:ring-emerald-500/20 disabled:opacity-50 cursor-pointer"
+                className="flex-1 rounded-xl bg-emerald-600 px-4 py-2.5 font-medium text-white shadow-sm transition hover:bg-emerald-500 focus:ring-2 focus:ring-emerald-500/20 disabled:opacity-50 cursor-pointer"
               >
-                {saving ? "Adding..." : "+ Add Score"}
+                {saving
+                  ? "Saving..."
+                  : editingId
+                  ? "Update Score"
+                  : "+ Add Score"}
               </button>
+
+              {editingId && (
+                <button
+                  type="button"
+                  onClick={cancelEdit}
+                  className="rounded-xl border border-gray-300 px-4 py-2.5 font-medium text-gray-700 transition hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800 cursor-pointer"
+                >
+                  Cancel
+                </button>
+              )}
             </div>
           </form>
 
@@ -245,7 +367,11 @@ export default function ScoresPage() {
               scores.map((item, index) => (
                 <div
                   key={item.id}
-                  className="flex items-center justify-between rounded-xl border border-gray-200/70 bg-gray-50/50 p-4 transition hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-800/40 dark:hover:bg-gray-800/70"
+                  className={`flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-xl border p-4 transition ${
+                    editingId === item.id
+                      ? "border-emerald-500 bg-emerald-50/40 dark:border-emerald-500/80 dark:bg-emerald-950/20"
+                      : "border-gray-200/70 bg-gray-50/50 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-800/40 dark:hover:bg-gray-800/70"
+                  }`}
                 >
                   <div className="flex items-center space-x-3">
                     <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100 text-xs font-bold text-emerald-800 dark:bg-emerald-950 dark:text-emerald-400">
@@ -261,8 +387,26 @@ export default function ScoresPage() {
                     </div>
                   </div>
 
-                  <div className="text-2xl font-black text-gray-900 dark:text-white">
-                    {item.score}
+                  <div className="flex items-center justify-between sm:justify-end gap-4">
+                    <div className="text-2xl font-black text-gray-900 dark:text-white">
+                      {item.score}
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => startEdit(item)}
+                        className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 transition hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 cursor-pointer"
+                      >
+                        Edit
+                      </button>
+
+                      <button
+                        onClick={() => handleDelete(item.id)}
+                        className="rounded-lg border border-red-200 bg-white px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-50 dark:border-red-900/60 dark:bg-gray-800 dark:text-red-400 dark:hover:bg-red-950/40 cursor-pointer"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))
