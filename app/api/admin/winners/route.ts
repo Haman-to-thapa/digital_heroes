@@ -49,7 +49,7 @@ export async function GET() {
     const winnerIds = winners.map((w) => w.id);
     const { data: proofs } = await supabaseAdmin
       .from("winner_proofs")
-      .select("id, winner_id, file_url, created_at")
+      .select("id, winner_id, file_url, reviewed_at, review_note")
       .in("winner_id", winnerIds);
 
     // Generate signed URLs for proofs
