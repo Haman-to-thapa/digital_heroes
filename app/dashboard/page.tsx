@@ -576,44 +576,124 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Profile Header Card */}
-        <div className="rounded-2xl border border-gray-200/80 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900 sm:p-8">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              {/* Upper: Role Badge */}
-              <div className="flex items-center gap-2 mb-2">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-500/20 shadow-xs">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  Role: {profile?.role || "Golfer"}
+        {/* If Inactive Golfer: Clear Alert Banner with Direct Activate / Sync Options */}
+        {!isActive && !isAdmin && (
+          <div className="rounded-2xl border border-amber-300/80 bg-linear-to-r from-amber-50 to-orange-50 p-5 shadow-xs dark:border-amber-900/60 dark:from-amber-950/40 dark:to-orange-950/20">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/20 text-xl text-amber-600 dark:text-amber-400">
+                  ⭐
                 </span>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-extrabold text-amber-950 dark:text-amber-200">
+                      Standard Account — Activate VIP Hero Subscription
+                    </h3>
+                    <span className="rounded-md bg-amber-500/20 px-2 py-0.5 text-[10px] font-extrabold uppercase text-amber-800 dark:text-amber-300">
+                      ₹100 / month
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs text-amber-800/90 dark:text-amber-300/80 leading-relaxed">
+                    Subscribe now to unlock monthly sweepstakes draws, 5-score match cash jackpots, priority scorecard audit, and tax-deductible charity giving.
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 shrink-0">
+                <Link
+                  href="/dashboard/subscription"
+                  className="inline-flex items-center justify-center rounded-xl bg-amber-600 px-4 py-2.5 text-xs font-extrabold text-white shadow-xs transition hover:bg-amber-500"
+                >
+                  ⭐ Unlock VIP Pass
+                </Link>
+                <Link
+                  href="/dashboard/subscription"
+                  className="inline-flex items-center justify-center rounded-xl border border-amber-300 bg-white px-3 py-2.5 text-xs font-bold text-amber-900 shadow-xs hover:bg-amber-50 dark:border-amber-800 dark:bg-slate-900 dark:text-amber-300"
+                >
+                  ⚡ Sync Paid Stripe
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Profile Header Card */}
+        <div
+          className={`relative overflow-hidden rounded-3xl p-6 sm:p-8 shadow-sm transition-all ${
+            isActive
+              ? "border-2 border-emerald-500/40 bg-gradient-to-br from-white via-emerald-50/30 to-teal-50/20 dark:border-emerald-500/30 dark:from-[#0b121e] dark:via-[#091724] dark:to-[#081518]"
+              : "border border-gray-200/80 bg-white dark:border-gray-800 dark:bg-gray-900"
+          }`}
+        >
+          {/* Subtle VIP background watermark if subscribed */}
+          {isActive && (
+            <div className="pointer-events-none absolute -right-6 -bottom-10 select-none text-[130px] font-black text-emerald-500/5 dark:text-emerald-400/5">
+              VIP
+            </div>
+          )}
+
+          <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              {/* Upper: Role Badge + VIP Badge */}
+              <div className="flex flex-wrap items-center gap-2 mb-2.5">
+                {isActive ? (
+                  <>
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-linear-to-r from-amber-500/15 via-emerald-500/20 to-teal-500/20 px-3 py-1 text-xs font-extrabold uppercase tracking-wider text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 shadow-xs">
+                      <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                      ⭐ VIP HERO MEMBER
+                    </span>
+                    <span className="inline-flex items-center rounded-full bg-amber-500/10 px-2.5 py-0.5 text-[11px] font-bold text-amber-700 dark:text-amber-300 border border-amber-500/20">
+                      👑 Premium Tier Active
+                    </span>
+                  </>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-500/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-slate-700 dark:bg-slate-900/60 dark:text-slate-400 border border-slate-300/40 dark:border-slate-800 shadow-xs">
+                    Role: {profile?.role || "Golfer"} (Standard)
+                  </span>
+                )}
                 <span className="text-xs font-medium text-slate-400 dark:text-slate-500">
-                  • Verified Member
+                  • Verified Account
                 </span>
               </div>
 
               {/* Main Heading: User Name / Full Name */}
-              <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
+              <h1 className="text-3xl font-black tracking-tight text-gray-900 dark:text-white sm:text-4xl">
                 {profile?.full_name || (userEmail ? userEmail.split("@")[0] : "Golfer")}
+                {isActive && (
+                  <span className="ml-2 text-2xl text-amber-500 inline-block" title="VIP Hero">
+                    ⭐
+                  </span>
+                )}
               </h1>
 
               {/* Subtext: User Account details */}
               <p className="mt-2 text-xs font-medium text-gray-500 dark:text-gray-400">
                 Connected account: <span className="font-semibold text-gray-800 dark:text-gray-200">{userEmail}</span>
+                {isActive && (
+                  <span className="ml-2 text-emerald-600 dark:text-emerald-400 font-bold">
+                    • All 6 VIP facilities unlocked
+                  </span>
+                )}
               </p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2.5">
               <Link
                 href="/dashboard/scores"
-                className="inline-flex items-center justify-center rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-500"
+                className="inline-flex items-center justify-center rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white shadow-xs transition hover:bg-emerald-500"
               >
                 Manage Scores ⛳
               </Link>
               <Link
-                href="/dashboard/charity"
-                className="inline-flex items-center justify-center rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+                href="/dashboard/draw"
+                className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2.5 text-xs font-bold text-white shadow-xs transition hover:bg-slate-800 dark:bg-emerald-950 dark:hover:bg-emerald-900 dark:text-emerald-200 border border-emerald-500/20"
               >
-                My Charity 🎗️
+                Monthly Draw 🎲
+              </Link>
+              <Link
+                href="/dashboard/subscription"
+                className="inline-flex items-center justify-center rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-xs font-bold text-gray-700 shadow-xs transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+              >
+                {isActive ? "VIP Pass 👑" : "Subscription 💳"}
               </Link>
             </div>
           </div>
@@ -782,6 +862,293 @@ export default function DashboardPage() {
             >
               My winnings &rarr;
             </Link>
+          </div>
+        </div>
+
+        {/* ========================================================================= */}
+        {/* 👑 VIP HERO FACILITIES & PRIVILEGES HUB (ALL 6 PERKS)                     */}
+        {/* ========================================================================= */}
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-linear-to-r from-amber-500/20 to-emerald-500/20 px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-amber-700 dark:text-amber-300 border border-amber-500/30 shadow-xs">
+                  <span>⭐</span> VIP HERO PRIVILEGES
+                </span>
+                <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
+                  {isActive ? "6 / 6 Facilities Active" : "Requires VIP Membership"}
+                </span>
+              </div>
+              <h2 className="mt-1 text-2xl font-black tracking-tight text-slate-900 dark:text-white">
+                {isActive ? "Your VIP Member Privileges & Facilities" : "Unlock All 6 VIP Member Facilities"}
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                {isActive
+                  ? "As an active subscriber, you have full privileges to submit scores, enter sweepstakes draws, win cash jackpots, and give back to society."
+                  : "Upgrade to VIP Hero for ₹100/mo to unlock full lottery sweepstakes eligibility, scorecard verification, and direct prize payouts."}
+              </p>
+            </div>
+
+            <div className="shrink-0">
+              <Link
+                href="/dashboard/subscription"
+                className={`inline-flex items-center justify-center rounded-xl px-4 py-2 text-xs font-extrabold shadow-xs transition ${
+                  isActive
+                    ? "border border-slate-300 bg-white text-slate-800 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                    : "bg-emerald-600 text-white hover:bg-emerald-500"
+                }`}
+              >
+                {isActive ? "Manage VIP Pass 👑" : "Unlock VIP Membership (₹100/mo) ⭐"}
+              </Link>
+            </div>
+          </div>
+
+          {/* 6 Facilities Cards Grid */}
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {/* PERK 1: MONTHLY SWEEPSTAKES ENTRY */}
+            <div className="flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+              <div>
+                <div className="flex items-center justify-between">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/10 text-lg">
+                    🎟️
+                  </span>
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-[10px] font-extrabold uppercase ${
+                      isActive
+                        ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
+                        : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400"
+                    }`}
+                  >
+                    {isActive ? "Active Entry ✓" : "Locked 🔒"}
+                  </span>
+                </div>
+                <h3 className="mt-3 text-base font-black text-slate-900 dark:text-white">
+                  Monthly Sweepstakes Entry
+                </h3>
+                <p className="mt-1.5 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                  Your subscription automatically funds ₹100 into the prize pool and secures your entry ticket into every monthly draw. No extra ticket purchases needed.
+                </p>
+              </div>
+              <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center text-xs">
+                <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+                  {isActive ? "Enrolled for Current Draw" : "Subscribe to enter"}
+                </span>
+                <Link href="/dashboard/draw" className="font-bold text-slate-700 hover:underline dark:text-slate-300">
+                  View Draw &rarr;
+                </Link>
+              </div>
+            </div>
+
+            {/* PERK 2: 5-SCORE QUALIFYING JACKPOT ENGINE */}
+            <div className="flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+              <div>
+                <div className="flex items-center justify-between">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-teal-500/10 text-lg">
+                    ⛳
+                  </span>
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-[10px] font-extrabold uppercase ${
+                      scoreCount === 5
+                        ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
+                        : "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300"
+                    }`}
+                  >
+                    {scoreCount === 5 ? "5/5 Qualified ✓" : `${scoreCount}/5 Scores`}
+                  </span>
+                </div>
+                <h3 className="mt-3 text-base font-black text-slate-900 dark:text-white">
+                  5-Score Jackpot Engine
+                </h3>
+                <p className="mt-1.5 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                  Log 5 official golf scores. Match 3 numbers for 25% pool share, 4 numbers for 35% pool share, or 5 numbers for the 40% Grand Jackpot.
+                </p>
+              </div>
+              <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center text-xs">
+                <span className="font-semibold text-slate-500 dark:text-slate-400">
+                  {5 - scoreCount > 0 ? `Needs ${5 - scoreCount} more score(s)` : "Fully qualified"}
+                </span>
+                <Link href="/dashboard/scores" className="font-bold text-emerald-600 hover:underline dark:text-emerald-400">
+                  Log Score &rarr;
+                </Link>
+              </div>
+            </div>
+
+            {/* PERK 3: TAX-DEDUCTIBLE CHARITY MULTIPLIER */}
+            <div className="flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+              <div>
+                <div className="flex items-center justify-between">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-rose-500/10 text-lg">
+                    🎗️
+                  </span>
+                  <span className="rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-extrabold uppercase text-rose-800 dark:bg-rose-950/60 dark:text-rose-300">
+                    {profile?.charity_percentage || 10}% Pledged
+                  </span>
+                </div>
+                <h3 className="mt-3 text-base font-black text-slate-900 dark:text-white">
+                  Charity Impact Multiplier
+                </h3>
+                <p className="mt-1.5 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                  Select your charity of choice (e.g. Wildlife SOS, Smile Foundation) and choose 10%–100% of your jackpot winnings to directly fund grassroots causes.
+                </p>
+              </div>
+              <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center text-xs">
+                <span className="truncate font-semibold text-slate-600 dark:text-slate-400 max-w-[130px]">
+                  {charity?.name || "Select Charity"}
+                </span>
+                <Link href="/dashboard/charity" className="font-bold text-rose-600 hover:underline dark:text-rose-400">
+                  Select Cause &rarr;
+                </Link>
+              </div>
+            </div>
+
+            {/* PERK 4: FAST-TRACK SCORE PROOF AUDIT */}
+            <div className="flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+              <div>
+                <div className="flex items-center justify-between">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500/10 text-lg">
+                    ⚡
+                  </span>
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-[10px] font-extrabold uppercase ${
+                      isActive
+                        ? "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300"
+                        : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400"
+                    }`}
+                  >
+                    {isActive ? "24h Priority SLA" : "Standard SLA"}
+                  </span>
+                </div>
+                <h3 className="mt-3 text-base font-black text-slate-900 dark:text-white">
+                  Fast-Track Proof Audit
+                </h3>
+                <p className="mt-1.5 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                  Uploaded scorecards, golf club receipts, and handicap attestations from VIP members receive rapid priority audit verification before monthly draw closure.
+                </p>
+              </div>
+              <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center text-xs">
+                <span className="font-semibold text-slate-500 dark:text-slate-400">Verified by Admin</span>
+                <Link href="/dashboard/scores" className="font-bold text-amber-600 hover:underline dark:text-amber-400">
+                  Upload Proof &rarr;
+                </Link>
+              </div>
+            </div>
+
+            {/* PERK 5: VIP CROWN & LEADERBOARD RECOGNITION */}
+            <div className="flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+              <div>
+                <div className="flex items-center justify-between">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-purple-500/10 text-lg">
+                    🏆
+                  </span>
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-[10px] font-extrabold uppercase ${
+                      isActive
+                        ? "bg-purple-100 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300"
+                        : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400"
+                    }`}
+                  >
+                    {isActive ? "VIP Hero Tag ⭐" : "Free Tag"}
+                  </span>
+                </div>
+                <h3 className="mt-3 text-base font-black text-slate-900 dark:text-white">
+                  VIP Crown & Recognition
+                </h3>
+                <p className="mt-1.5 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                  VIP Hero members receive official platform badges across public leaderboards, verified winner showcases, and community draws.
+                </p>
+              </div>
+              <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center text-xs">
+                <span className="font-semibold text-purple-600 dark:text-purple-400">
+                  {isActive ? "Badge displayed" : "Subscribe to unlock"}
+                </span>
+                <Link href="/draws" className="font-bold text-slate-700 hover:underline dark:text-slate-300">
+                  Public Board &rarr;
+                </Link>
+              </div>
+            </div>
+
+            {/* PERK 6: DIRECT CASH CONCIERGE PAYOUTS */}
+            <div className="flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+              <div>
+                <div className="flex items-center justify-between">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-500/10 text-lg">
+                    💰
+                  </span>
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-[10px] font-extrabold uppercase ${
+                      isActive
+                        ? "bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300"
+                        : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400"
+                    }`}
+                  >
+                    {isActive ? "Ready for Payout" : "Inactive"}
+                  </span>
+                </div>
+                <h3 className="mt-3 text-base font-black text-slate-900 dark:text-white">
+                  Direct Cash Concierge Payout
+                </h3>
+                <p className="mt-1.5 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                  Instant prize disbursement straight to your bank account or UPI VPA upon winner verification, with full transaction receipts and audit trail.
+                </p>
+              </div>
+              <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center text-xs">
+                <span className="font-semibold text-blue-600 dark:text-blue-400">
+                  ₹{winningsTotal.toFixed(2)} Total Won
+                </span>
+                <Link href="/dashboard/winnings" className="font-bold text-slate-700 hover:underline dark:text-slate-300">
+                  View Winnings &rarr;
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ========================================================================= */}
+        {/* ⛳ 4-STEP ROADMAP TO WIN CASH JACKPOTS                                    */}
+        {/* ========================================================================= */}
+        <div className="rounded-3xl border border-slate-200/80 bg-linear-to-br from-slate-900 via-slate-950 to-slate-900 p-6 sm:p-8 text-white shadow-md">
+          <div className="max-w-2xl">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-extrabold uppercase tracking-wider text-emerald-300 border border-emerald-500/30">
+              ⚡ HOW TO PARTICIPATE & WIN
+            </span>
+            <h3 className="mt-2 text-2xl font-black">Turn Your Golf Rounds Into Real Cash Jackpots</h3>
+            <p className="mt-1 text-xs text-slate-400 leading-relaxed">
+              Follow these 4 simple steps to maximize your chances in every monthly sweepstakes draw.
+            </p>
+          </div>
+
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="rounded-2xl bg-white/5 p-4 border border-white/10 backdrop-blur-xs">
+              <span className="text-xl">1️⃣</span>
+              <h4 className="mt-2 text-sm font-bold text-white">Active VIP Pass</h4>
+              <p className="mt-1 text-xs text-slate-400">
+                {isActive ? "✓ Completed: Your membership is active." : "Subscribe for ₹100/mo to enter draws."}
+              </p>
+            </div>
+
+            <div className="rounded-2xl bg-white/5 p-4 border border-white/10 backdrop-blur-xs">
+              <span className="text-xl">2️⃣</span>
+              <h4 className="mt-2 text-sm font-bold text-white">Log 5 Golf Scores</h4>
+              <p className="mt-1 text-xs text-slate-400">
+                {scoreCount === 5 ? "✓ Completed: 5/5 scores ready." : `Progress: ${scoreCount}/5 scores logged.`}
+              </p>
+            </div>
+
+            <div className="rounded-2xl bg-white/5 p-4 border border-white/10 backdrop-blur-xs">
+              <span className="text-xl">3️⃣</span>
+              <h4 className="mt-2 text-sm font-bold text-white">Pick Your Charity</h4>
+              <p className="mt-1 text-xs text-slate-400">
+                {charity ? `✓ ${charity.name} (${profile?.charity_percentage || 10}%)` : "Select your charity and giving %."}
+              </p>
+            </div>
+
+            <div className="rounded-2xl bg-white/5 p-4 border border-white/10 backdrop-blur-xs">
+              <span className="text-xl">4️⃣</span>
+              <h4 className="mt-2 text-sm font-bold text-white">Match & Win Cash</h4>
+              <p className="mt-1 text-xs text-slate-400">
+                Match 3, 4, or 5 numbers in the monthly draw to claim real payouts!
+              </p>
+            </div>
           </div>
         </div>
       </div>

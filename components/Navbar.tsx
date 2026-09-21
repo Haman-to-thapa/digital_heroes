@@ -12,16 +12,44 @@ export function Navbar() {
   const router = useRouter();
   const supabase = createClient();
   const [user, setUser] = useState<User | null>(null);
+  const [isVip, setIsVip] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
+    async function loadUserState() {
+      const { data } = await supabase.auth.getUser();
       setUser(data.user);
-    });
+
+      if (data.user) {
+        const { data: sub } = await supabase
+          .from("subscriptions")
+          .select("status")
+          .eq("user_id", data.user.id)
+          .eq("status", "active")
+          .limit(1)
+          .maybeSingle();
+
+        if (sub) {
+          setIsVip(true);
+        } else {
+          const { data: prof } = await supabase
+            .from("profiles")
+            .select("role")
+            .eq("id", data.user.id)
+            .single();
+          if (prof?.role === "admin") {
+            setIsVip(true);
+          }
+        }
+      }
+    }
+
+    loadUserState();
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
+      if (!session?.user) setIsVip(false);
     });
 
     return () => {
@@ -112,6 +140,11 @@ export function Navbar() {
                   {user.email?.charAt(0).toUpperCase() || "U"}
                 </span>
                 <span className="max-w-[110px] truncate">{user.email?.split("@")[0]}</span>
+                {isVip && (
+                  <span className="rounded-full bg-amber-500/20 border border-amber-500/40 px-1.5 py-0.2 text-[9px] font-black text-amber-600 dark:text-amber-400 shadow-2xs">
+                    ⭐ VIP
+                  </span>
+                )}
               </div>
 
               {/* Dashboard Button */}
@@ -221,15 +254,22 @@ export function Navbar() {
 
             {user ? (
               <>
-                <div className="flex items-center space-x-2.5 px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-800/60">
-                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500 text-xs font-bold text-white">
-                    {user.email?.charAt(0).toUpperCase() || "U"}
-                  </span>
-                  <div className="overflow-hidden">
-                    <p className="truncate text-xs font-semibold text-slate-900 dark:text-white">
-                      {user.email}
-                    </p>
+                <div className="flex items-center justify-between px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-800/60">
+                  <div className="flex items-center space-x-2.5 overflow-hidden">
+                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500 text-xs font-bold text-white">
+                      {user.email?.charAt(0).toUpperCase() || "U"}
+                    </span>
+                    <div className="overflow-hidden">
+                      <p className="truncate text-xs font-semibold text-slate-900 dark:text-white">
+                        {user.email}
+                      </p>
+                    </div>
                   </div>
+                  {isVip && (
+                    <span className="rounded-full bg-amber-500/20 border border-amber-500/40 px-2 py-0.5 text-[9px] font-extrabold text-amber-600 dark:text-amber-400">
+                      ⭐ VIP
+                    </span>
+                  )}
                 </div>
 
                 <Link

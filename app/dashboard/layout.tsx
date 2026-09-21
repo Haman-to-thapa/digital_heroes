@@ -25,6 +25,7 @@ export default function DashboardLayout({
 
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<{ full_name: string | null; role: string } | null>(null);
+  const [subscription, setSubscription] = useState<{ status: string; plan_type: string } | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -41,6 +42,15 @@ export default function DashboardLayout({
             .eq("id", data.user.id)
             .single();
           if (prof) setProfile(prof);
+
+          const { data: sub } = await supabase
+            .from("subscriptions")
+            .select("status, plan_type")
+            .eq("user_id", data.user.id)
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          if (sub) setSubscription(sub);
         }
       } finally {
         setLoading(false);
@@ -142,6 +152,7 @@ export default function DashboardLayout({
     {
       label: "Subscription",
       href: "/dashboard/subscription",
+      badge: subscription?.status === "active" ? "VIP Active ⭐" : "Upgrade",
       icon: (active) => (
         <svg
           className={`h-5 w-5 transition-colors ${
@@ -492,12 +503,22 @@ export default function DashboardLayout({
                   <p className="truncate text-xs font-bold text-slate-900 dark:text-slate-100">
                     {profile?.full_name || user?.email?.split("@")[0] || "Golfer"}
                   </p>
-                  <span className="rounded-md bg-emerald-500/10 px-1.5 py-0.2 text-[9px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
-                    {profile?.role || "Golfer"}
-                  </span>
+                  {profile?.role === "admin" ? (
+                    <span className="rounded-md bg-amber-500/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                      Admin 👑
+                    </span>
+                  ) : subscription?.status === "active" ? (
+                    <span className="rounded-md bg-emerald-500/15 px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 shadow-xs">
+                      ⭐ VIP HERO
+                    </span>
+                  ) : (
+                    <span className="rounded-md bg-slate-500/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                      Golfer
+                    </span>
+                  )}
                 </div>
                 <p className="truncate text-[10px] text-slate-400 dark:text-slate-500">
-                  {user?.email || "Signed in"}
+                  {subscription?.status === "active" ? "VIP Membership Active" : user?.email || "Signed in"}
                 </p>
               </div>
             </div>
@@ -569,6 +590,11 @@ export default function DashboardLayout({
           <span className="text-base font-bold text-slate-950 dark:text-white">
             Digital <span className="text-emerald-600 dark:text-emerald-400">Heroes</span>
           </span>
+          {subscription?.status === "active" && !isAdmin && (
+            <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[9px] font-extrabold text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
+              ⭐ VIP
+            </span>
+          )}
         </Link>
 
         <div className="flex items-center space-x-2">
@@ -685,9 +711,16 @@ export default function DashboardLayout({
         {/* Desktop Sticky Header with Visible Theme Switcher */}
         <header className="hidden md:flex sticky top-0 z-30 h-14 items-center justify-between border-b border-slate-200/80 bg-white/80 px-6 backdrop-blur-md dark:border-slate-800/80 dark:bg-[#070b12]/80">
           <div className="flex items-center space-x-2 text-xs text-slate-500 dark:text-slate-400">
-            <span className="font-semibold text-slate-900 dark:text-white">Digital Heroes Member Portal</span>
+            <span className="font-semibold text-slate-900 dark:text-white">
+              {isAdmin ? "Digital Heroes Admin Portal" : "Digital Heroes Member Portal"}
+            </span>
             <span>•</span>
             <span className="capitalize">{pathname?.split("/").filter(Boolean).slice(-1)[0] || "Dashboard"}</span>
+            {!isAdmin && subscription?.status === "active" && (
+              <span className="ml-2 inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-amber-500/15 to-emerald-500/15 px-3 py-0.5 text-[10px] font-extrabold text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 shadow-xs">
+                <span>⭐</span> VIP HERO MEMBER
+              </span>
+            )}
           </div>
 
           <div className="flex items-center space-x-2.5">

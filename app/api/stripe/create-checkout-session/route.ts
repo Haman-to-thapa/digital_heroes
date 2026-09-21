@@ -76,7 +76,7 @@ export async function POST(request: Request) {
         user_id: user.id,
         plan,
       },
-      success_url: `${origin}/dashboard/subscription?success=true`,
+      success_url: `${origin}/dashboard/subscription?success=true&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/dashboard/subscription?cancelled=true`,
     });
 
