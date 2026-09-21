@@ -2,100 +2,131 @@ import Link from "next/link";
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen bg-white text-gray-900 dark:bg-gray-950 dark:text-gray-100 transition-colors">
+    <main className="min-h-screen bg-[#fcfcfd] text-slate-900 transition-colors duration-200 dark:bg-[#080c14] dark:text-slate-100">
       {/* Hero Section */}
-      <section className="bg-gray-50/80 border-b border-gray-100 dark:bg-gray-900/40 dark:border-gray-800">
-        <div className="mx-auto grid max-w-7xl gap-12 px-6 py-20 md:grid-cols-2 md:items-center md:py-28">
-          <div>
-            <span className="inline-flex items-center rounded-full bg-emerald-100 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-emerald-800 shadow-sm dark:bg-emerald-950 dark:text-emerald-400">
-              Play. Participate. Give back.
-            </span>
+      <section className="relative overflow-hidden border-b border-slate-200/70 pt-16 pb-24 dark:border-slate-800/80 sm:pt-24 sm:pb-32">
+        {/* Subtle background glow */}
+        <div className="pointer-events-none absolute -top-40 left-1/2 -z-10 h-[500px] w-[800px] -translate-x-1/2 rounded-full bg-gradient-to-tr from-emerald-500/10 via-teal-500/5 to-transparent blur-3xl dark:from-emerald-500/15 dark:via-cyan-500/5" />
 
-            <h1 className="mt-6 text-5xl font-extrabold tracking-tight text-gray-900 dark:text-white md:text-6xl">
-              Your score can create a <span className="text-emerald-600 dark:text-emerald-400">bigger impact</span>.
-            </h1>
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+          <div className="grid gap-12 lg:grid-cols-12 lg:items-center">
+            {/* Left Column: Vision & Copy */}
+            <div className="lg:col-span-7">
+              <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-3.5 py-1.5 text-xs font-medium text-slate-700 shadow-xs backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-300">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                A new era of purpose-driven golf
+              </div>
 
-            <p className="mt-6 max-w-xl text-lg leading-8 text-gray-600 dark:text-gray-300">
-              Track your golf performance, join monthly sweepstakes draws, and support a verified charity that matters to you.
-            </p>
+              <h1 className="mt-6 text-4xl font-semibold tracking-tight text-slate-950 dark:text-white sm:text-5xl lg:text-6xl leading-[1.12]">
+                Play the game you love. <br />
+                <span className="font-serif italic font-normal text-emerald-700 dark:text-emerald-400">
+                  Fund the causes that count.
+                </span>
+              </h1>
 
-            <div className="mt-8 flex flex-wrap gap-4">
-              <Link
-                href="/signup"
-                className="rounded-xl bg-emerald-600 px-6 py-3.5 font-semibold text-white shadow-sm transition hover:bg-emerald-500 cursor-pointer"
-              >
-                Subscribe & Join
-              </Link>
+              <p className="mt-6 max-w-xl text-base sm:text-lg leading-relaxed text-slate-600 dark:text-slate-300">
+                Digital Heroes turns your regular rounds of golf into monthly charity funding. Post your Stableford scores, enter transparent cash draws, and direct real donations to verified non-profits.
+              </p>
 
-              <Link
-                href="/charities"
-                className="rounded-xl border border-gray-300 bg-white px-6 py-3.5 font-semibold text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
-              >
-                Explore Charities
-              </Link>
+              <div className="mt-8 flex flex-wrap items-center gap-3.5">
+                <Link
+                  href="/signup"
+                  className="rounded-xl bg-slate-950 px-6 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 dark:bg-emerald-500 dark:text-slate-950 dark:hover:bg-emerald-400"
+                >
+                  Start Membership
+                </Link>
+
+                <Link
+                  href="/charities"
+                  className="rounded-xl border border-slate-300 bg-white px-6 py-3.5 text-sm font-medium text-slate-700 shadow-2xs transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800/80"
+                >
+                  Explore Charities
+                </Link>
+              </div>
+
+              {/* Trust badges */}
+              <div className="mt-10 flex flex-wrap items-center gap-6 pt-6 border-t border-slate-200/70 dark:border-slate-800/70 text-xs text-slate-500 dark:text-slate-400">
+                <div className="flex items-center gap-2">
+                  <svg className="h-4 w-4 text-emerald-600 dark:text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <span>10% min. to verified charity</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <svg className="h-4 w-4 text-emerald-600 dark:text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <span>Stableford scoring (1–45)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <svg className="h-4 w-4 text-emerald-600 dark:text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <span>Encrypted Stripe billing</span>
+                </div>
+              </div>
             </div>
-          </div>
 
-          {/* How It Works Card */}
-          <div className="rounded-3xl border border-gray-200/80 bg-white p-8 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-            <p className="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
-              HOW IT WORKS
-            </p>
-
-            <div className="mt-6 space-y-4">
-              <div className="flex items-start gap-4 rounded-2xl bg-gray-50 p-4 dark:bg-gray-800/60 border border-gray-100 dark:border-gray-800">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-xs font-bold text-emerald-800 dark:bg-emerald-950 dark:text-emerald-400">
-                  01
-                </span>
-                <div>
-                  <h3 className="font-bold text-gray-900 dark:text-white">
-                    Subscribe
-                  </h3>
-                  <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                    Choose a flexible monthly or discounted yearly plan.
-                  </p>
+            {/* Right Column: How it Works Preview */}
+            <div className="lg:col-span-5">
+              <div className="relative rounded-2xl border border-slate-200/90 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900/90 sm:p-7">
+                <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
+                  <span className="text-xs font-semibold tracking-wider uppercase text-slate-500 dark:text-slate-400">
+                    The Loop
+                  </span>
+                  <span className="text-xs text-emerald-700 dark:text-emerald-400 font-medium">
+                    Four Simple Steps
+                  </span>
                 </div>
-              </div>
 
-              <div className="flex items-start gap-4 rounded-2xl bg-gray-50 p-4 dark:bg-gray-800/60 border border-gray-100 dark:border-gray-800">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-xs font-bold text-emerald-800 dark:bg-emerald-950 dark:text-emerald-400">
-                  02
-                </span>
-                <div>
-                  <h3 className="font-bold text-gray-900 dark:text-white">
-                    Enter your scores
-                  </h3>
-                  <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                    Keep your latest five Stableford scores (1–45) updated.
-                  </p>
-                </div>
-              </div>
+                <div className="mt-5 space-y-3.5">
+                  <div className="group rounded-xl border border-slate-100 bg-slate-50/70 p-4 transition hover:bg-slate-100/70 dark:border-slate-800/80 dark:bg-slate-800/40 dark:hover:bg-slate-800/70">
+                    <div className="flex items-baseline justify-between">
+                      <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
+                        1. Join on a monthly or yearly plan
+                      </h3>
+                      <span className="text-xs font-mono text-slate-400">01</span>
+                    </div>
+                    <p className="mt-1 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                      Choose flexible monthly enrollment or a discounted annual pass.
+                    </p>
+                  </div>
 
-              <div className="flex items-start gap-4 rounded-2xl bg-gray-50 p-4 dark:bg-gray-800/60 border border-gray-100 dark:border-gray-800">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-xs font-bold text-emerald-800 dark:bg-emerald-950 dark:text-emerald-400">
-                  03
-                </span>
-                <div>
-                  <h3 className="font-bold text-gray-900 dark:text-white">
-                    Support a cause
-                  </h3>
-                  <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                    Direct a minimum of 10% of subscription to your chosen charity.
-                  </p>
-                </div>
-              </div>
+                  <div className="group rounded-xl border border-slate-100 bg-slate-50/70 p-4 transition hover:bg-slate-100/70 dark:border-slate-800/80 dark:bg-slate-800/40 dark:hover:bg-slate-800/70">
+                    <div className="flex items-baseline justify-between">
+                      <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
+                        2. Post your 5 latest scores
+                      </h3>
+                      <span className="text-xs font-mono text-slate-400">02</span>
+                    </div>
+                    <p className="mt-1 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                      Log your Stableford points from any regulation course.
+                    </p>
+                  </div>
 
-              <div className="flex items-start gap-4 rounded-2xl bg-gray-50 p-4 dark:bg-gray-800/60 border border-gray-100 dark:border-gray-800">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-xs font-bold text-emerald-800 dark:bg-emerald-950 dark:text-emerald-400">
-                  04
-                </span>
-                <div>
-                  <h3 className="font-bold text-gray-900 dark:text-white">
-                    Join the monthly draw
-                  </h3>
-                  <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                    Automatic entry into monthly sweepstakes for 3, 4, and 5-number match tiers.
-                  </p>
+                  <div className="group rounded-xl border border-slate-100 bg-slate-50/70 p-4 transition hover:bg-slate-100/70 dark:border-slate-800/80 dark:bg-slate-800/40 dark:hover:bg-slate-800/70">
+                    <div className="flex items-baseline justify-between">
+                      <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
+                        3. Allocate your charity share
+                      </h3>
+                      <span className="text-xs font-mono text-slate-400">03</span>
+                    </div>
+                    <p className="mt-1 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                      At least 10% of every subscription goes directly to your selected cause.
+                    </p>
+                  </div>
+
+                  <div className="group rounded-xl border border-slate-100 bg-slate-50/70 p-4 transition hover:bg-slate-100/70 dark:border-slate-800/80 dark:bg-slate-800/40 dark:hover:bg-slate-800/70">
+                    <div className="flex items-baseline justify-between">
+                      <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
+                        4. Enter the monthly draw
+                      </h3>
+                      <span className="text-xs font-mono text-slate-400">04</span>
+                    </div>
+                    <p className="mt-1 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                      Automatic sweepstakes entry with 3, 4, and 5-number cash tiers.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -103,171 +134,181 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Charity Impact Section */}
-      <section className="mx-auto max-w-7xl px-6 py-20">
-        <div className="max-w-2xl">
-          <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold uppercase tracking-wider text-emerald-800 dark:bg-emerald-950 dark:text-emerald-400">
-            CHARITY FIRST
-          </span>
-
-          <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
-            Your membership supports a cause you choose.
-          </h2>
-
-          <p className="mt-4 text-base text-gray-600 dark:text-gray-300 leading-relaxed">
-            Select a verified charity and decide how much of your subscription you want to direct toward charitable contribution.
-          </p>
-        </div>
-
-        <div className="mt-10 grid gap-6 md:grid-cols-3">
-          <div className="rounded-2xl border border-gray-200/80 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-xl dark:bg-emerald-950/60">
-              🎗️
-            </div>
-            <h3 className="mt-4 text-xl font-bold text-gray-900 dark:text-white">
-              Choose your charity
-            </h3>
-            <p className="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-400">
-              Browse our directory of verified community organizations and select the cause you care about most.
-            </p>
-          </div>
-
-          <div className="rounded-2xl border border-gray-200/80 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-xl dark:bg-emerald-950/60">
-              📊
-            </div>
-            <h3 className="mt-4 text-xl font-bold text-gray-900 dark:text-white">
-              Minimum 10%
-            </h3>
-            <p className="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-400">
-              Your subscription contribution starts at a mandatory PRD minimum of 10% straight to charity.
-            </p>
-          </div>
-
-          <div className="rounded-2xl border border-gray-200/80 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-xl dark:bg-emerald-950/60">
-              ❤️
-            </div>
-            <h3 className="mt-4 text-xl font-bold text-gray-900 dark:text-white">
-              Increase your impact
-            </h3>
-            <p className="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-400">
-              Optionally scale your contribution to 20%, 30%, 50%, or even 100% of your membership fees.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Monthly Draw Prize Tiers */}
-      <section className="border-t border-gray-100 bg-gray-50/80 dark:border-gray-800 dark:bg-gray-900/40">
-        <div className="mx-auto max-w-7xl px-6 py-20">
+      {/* Section: Philanthropy First */}
+      <section className="py-20 sm:py-28">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <div className="max-w-2xl">
-            <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold uppercase tracking-wider text-emerald-800 dark:bg-emerald-950 dark:text-emerald-400">
-              MONTHLY DRAW
+            <span className="text-xs font-semibold tracking-wider uppercase text-emerald-700 dark:text-emerald-400">
+              Community Impact
             </span>
-
-            <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
-              Three ways to match.
+            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 dark:text-white sm:text-4xl">
+              Charity is at the center of every swing.
             </h2>
-
-            <p className="mt-4 text-base text-gray-600 dark:text-gray-300">
-              The monthly draw distributes the prize pool across three distinct winning tiers:
+            <p className="mt-4 text-base text-slate-600 dark:text-slate-400 leading-relaxed">
+              Unlike traditional commercial sweepstakes, Digital Heroes gives subscribers direct ownership over where their contributions go. You choose the organization and the percentage.
             </p>
           </div>
 
-          <div className="mt-10 grid gap-6 md:grid-cols-3">
-            <div className="rounded-2xl border border-gray-200/80 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-              <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold uppercase tracking-wider text-amber-800 dark:bg-amber-950 dark:text-amber-400">
-                5-NUMBER MATCH
+          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="rounded-2xl border border-slate-200/80 bg-white p-6 dark:border-slate-800 dark:bg-slate-900/60">
+              <span className="text-xs font-mono uppercase tracking-widest text-slate-400">
+                01 / Choice
               </span>
-              <h3 className="mt-4 text-4xl font-extrabold text-gray-900 dark:text-white">
-                40%
+              <h3 className="mt-3 text-lg font-semibold text-slate-900 dark:text-white">
+                Vetted Charity Directory
               </h3>
-              <p className="mt-2 text-sm font-semibold text-emerald-600 dark:text-emerald-400">
-                Jackpot Tier (With Rollover)
-              </p>
-              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                If unclaimed, rolls over to next month.
+              <p className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+                Pick from organizations focused on community education, youth empowerment, or environmental conservation.
               </p>
             </div>
 
-            <div className="rounded-2xl border border-gray-200/80 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-              <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold uppercase tracking-wider text-emerald-800 dark:bg-emerald-950 dark:text-emerald-400">
-                4-NUMBER MATCH
+            <div className="rounded-2xl border border-slate-200/80 bg-white p-6 dark:border-slate-800 dark:bg-slate-900/60">
+              <span className="text-xs font-mono uppercase tracking-widest text-slate-400">
+                02 / Foundation
               </span>
-              <h3 className="mt-4 text-4xl font-extrabold text-gray-900 dark:text-white">
-                35%
+              <h3 className="mt-3 text-lg font-semibold text-slate-900 dark:text-white">
+                10% Minimum Commitment
               </h3>
-              <p className="mt-2 text-sm font-semibold text-emerald-600 dark:text-emerald-400">
-                Prize Pool Tier
-              </p>
-              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                Split equally among all 4-match winners.
+              <p className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+                Every single membership begins with a baseline 10% charity contribution automatically carved out of your fee.
               </p>
             </div>
 
-            <div className="rounded-2xl border border-gray-200/80 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-              <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold uppercase tracking-wider text-emerald-800 dark:bg-emerald-950 dark:text-emerald-400">
-                3-NUMBER MATCH
+            <div className="rounded-2xl border border-slate-200/80 bg-white p-6 dark:border-slate-800 dark:bg-slate-900/60">
+              <span className="text-xs font-mono uppercase tracking-widest text-slate-400">
+                03 / Scale
               </span>
-              <h3 className="mt-4 text-4xl font-extrabold text-gray-900 dark:text-white">
-                25%
+              <h3 className="mt-3 text-lg font-semibold text-slate-900 dark:text-white">
+                Optional Higher Contribution
               </h3>
-              <p className="mt-2 text-sm font-semibold text-emerald-600 dark:text-emerald-400">
-                Prize Pool Tier
-              </p>
-              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                Split equally among all 3-match winners.
+              <p className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+                Increase your percentage to 20%, 30%, 50%, or 100% from your personal dashboard at any time.
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* CTA Banner */}
-      <section className="mx-auto max-w-7xl px-6 py-20">
-        <div className="rounded-3xl bg-gradient-to-tr from-emerald-950 via-gray-950 to-black px-8 py-16 text-white shadow-xl md:px-14 border border-emerald-900/40">
-          <h2 className="max-w-2xl text-4xl font-extrabold tracking-tight md:text-5xl">
-            Ready to become a Digital Hero?
-          </h2>
+      {/* Section: Prize Tiers (Transparent Mathematics) */}
+      <section className="border-y border-slate-200/80 bg-slate-50/60 py-20 dark:border-slate-800/80 dark:bg-slate-900/30 sm:py-28">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <span className="text-xs font-semibold tracking-wider uppercase text-emerald-700 dark:text-emerald-400">
+                Transparent Returns
+              </span>
+              <h2 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950 dark:text-white sm:text-4xl">
+                Monthly Draw Prize Tiers
+              </h2>
+              <p className="mt-3 text-base text-slate-600 dark:text-slate-400">
+                Three clearly structured match levels derived from total active subscribers.
+              </p>
+            </div>
 
-          <p className="mt-4 max-w-xl text-base text-gray-300 leading-relaxed">
-            Subscribe, log your Stableford golf scores, participate in monthly prize draws, and generate real charitable impact.
-          </p>
+            <span className="inline-flex self-start rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">
+              Split equally if multiple winners
+            </span>
+          </div>
 
-          <div className="mt-8 flex flex-wrap gap-4">
-            <Link
-              href="/signup"
-              className="rounded-xl bg-emerald-500 px-8 py-3.5 font-bold text-black shadow-lg transition hover:bg-emerald-400"
-            >
-              Get Started Now &rarr;
-            </Link>
-            <Link
-              href="/charities"
-              className="rounded-xl border border-white/20 bg-white/10 px-8 py-3.5 font-semibold text-white backdrop-blur transition hover:bg-white/20"
-            >
-              Explore Charities
-            </Link>
+          <div className="mt-12 grid gap-6 sm:grid-cols-3">
+            {/* 5-Match */}
+            <div className="relative rounded-2xl border border-emerald-500/30 bg-white p-7 shadow-xs dark:border-emerald-500/20 dark:bg-slate-900/80">
+              <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
+                <span>5-Number Match</span>
+                <span className="rounded-full bg-emerald-50 px-2 py-0.5 dark:bg-emerald-950/60">Jackpot</span>
+              </div>
+              <div className="mt-5 text-4xl font-bold tracking-tight text-slate-950 dark:text-white">
+                40%
+              </div>
+              <p className="mt-1 text-xs font-medium text-slate-500 dark:text-slate-400">
+                of total monthly prize pool
+              </p>
+              <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800/80 text-xs text-slate-600 dark:text-slate-400">
+                Unclaimed jackpot rolls over to the following month.
+              </div>
+            </div>
+
+            {/* 4-Match */}
+            <div className="rounded-2xl border border-slate-200/80 bg-white p-7 shadow-xs dark:border-slate-800 dark:bg-slate-900/80">
+              <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                4-Number Match
+              </div>
+              <div className="mt-5 text-4xl font-bold tracking-tight text-slate-950 dark:text-white">
+                35%
+              </div>
+              <p className="mt-1 text-xs font-medium text-slate-500 dark:text-slate-400">
+                of total monthly prize pool
+              </p>
+              <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800/80 text-xs text-slate-600 dark:text-slate-400">
+                Evenly distributed across all verified 4-match entries.
+              </div>
+            </div>
+
+            {/* 3-Match */}
+            <div className="rounded-2xl border border-slate-200/80 bg-white p-7 shadow-xs dark:border-slate-800 dark:bg-slate-900/80">
+              <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                3-Number Match
+              </div>
+              <div className="mt-5 text-4xl font-bold tracking-tight text-slate-950 dark:text-white">
+                25%
+              </div>
+              <p className="mt-1 text-xs font-medium text-slate-500 dark:text-slate-400">
+                of total monthly prize pool
+              </p>
+              <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800/80 text-xs text-slate-600 dark:text-slate-400">
+                Evenly distributed across all verified 3-match entries.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20 sm:py-24">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+          <div className="rounded-3xl border border-slate-900/5 bg-slate-950 px-8 py-14 text-white shadow-xl dark:border-slate-800 sm:px-12 sm:py-16">
+            <div className="max-w-2xl">
+              <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+                Ready to play with purpose?
+              </h2>
+              <p className="mt-4 text-sm sm:text-base leading-relaxed text-slate-300">
+                Sign up, enter your five latest Stableford rounds, choose your non-profit cause, and join this month&apos;s sweepstakes.
+              </p>
+              <div className="mt-8 flex flex-wrap gap-4">
+                <Link
+                  href="/signup"
+                  className="rounded-xl bg-emerald-500 px-6 py-3.5 text-sm font-semibold text-slate-950 shadow-sm transition hover:bg-emerald-400"
+                >
+                  Create Your Account
+                </Link>
+                <Link
+                  href="/login"
+                  className="rounded-xl border border-slate-700 bg-slate-900 px-6 py-3.5 text-sm font-medium text-slate-200 transition hover:bg-slate-800"
+                >
+                  Member Login
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-950">
-        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-6 py-10 text-sm text-gray-500 dark:text-gray-400 md:flex-row md:items-center md:justify-between">
-          <div className="flex items-center space-x-2">
-            <span className="font-bold text-gray-900 dark:text-white">Digital Heroes</span>
-            <span>© 2026. All rights reserved.</span>
+      <footer className="border-t border-slate-200/80 py-10 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400">
+        <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
+          <div>
+            <span className="font-semibold text-slate-900 dark:text-white">Digital Heroes</span>
+            <span className="ml-2">© 2026. Built with purpose.</span>
           </div>
 
-          <div className="flex items-center space-x-6">
-            <Link href="/charities" className="hover:text-emerald-600 dark:hover:text-emerald-400">
+          <div className="flex items-center gap-6">
+            <Link href="/charities" className="transition hover:text-slate-900 dark:hover:text-white">
               Charities
             </Link>
-            <Link href="/dashboard/subscription" className="hover:text-emerald-600 dark:hover:text-emerald-400">
-              Plans
+            <Link href="/dashboard/subscription" className="transition hover:text-slate-900 dark:hover:text-white">
+              Subscription
             </Link>
-            <Link href="/login" className="hover:text-emerald-600 dark:hover:text-emerald-400">
+            <Link href="/login" className="transition hover:text-slate-900 dark:hover:text-white">
               Login
             </Link>
           </div>
