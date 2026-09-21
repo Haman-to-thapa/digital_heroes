@@ -16,10 +16,13 @@ export default function DrawPage() {
 
   const [scores, setScores] = useState<Score[]>([]);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState("");
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [hasEntered, setHasEntered] = useState(false);
 
   useEffect(() => {
-    async function loadScores() {
+    async function loadData() {
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -29,25 +32,148 @@ export default function DrawPage() {
         return;
       }
 
-      const { data, error } = await supabase
+      // 1. Fetch latest 5 scores
+      const { data: scoreData, error: scoreErr } = await supabase
         .from("scores")
         .select("score, score_date")
         .eq("user_id", user.id)
         .order("score_date", { ascending: false })
         .limit(5);
 
-      if (error) {
-        setMessage(error.message);
+      if (scoreErr) {
+        setMessage(scoreErr.message);
         setLoading(false);
         return;
       }
 
-      setScores(data || []);
+      setScores(scoreData || []);
+
+      // 2. Check if user already entered current month's draw
+      const now = new Date();
+      const currentMonth = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}-01`;
+
+      const { data: draw } = await supabase
+        .from("draws")
+        .select("id")
+        .eq("draw_month", currentMonth)
+        .maybeSingle();
+
+      if (draw) {
+        const { data: existingEntry } = await supabase
+          .from("draw_entries")
+          .select("id")
+          .eq("draw_id", draw.id)
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        if (existingEntry) {
+          setHasEntered(true);
+        }
+      }
+
       setLoading(false);
     }
 
-    loadScores();
+    loadData();
   }, [router, supabase]);
+
+  async function handleEnterDraw() {
+    setMessage("");
+    setIsSuccess(false);
+    setSubmitting(true);
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+
+    // Check active subscription
+    const { data: subscription } = await supabase
+      .from("subscriptions")
+      .select("id, status")
+      .eq("user_id", user.id)
+      .eq("status", "active")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (!subscription) {
+      setMessage("An active subscription is required to enter the draw.");
+      setIsSuccess(false);
+      setSubmitting(false);
+      return;
+    }
+
+    if (scores.length !== 5) {
+      setMessage("You need exactly 5 scores to enter the draw.");
+      setIsSuccess(false);
+      setSubmitting(false);
+      return;
+    }
+
+    // Get current month's draw
+    const now = new Date();
+    const drawMonth = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}-01`;
+
+    const { data: draw, error: drawError } = await supabase
+      .from("draws")
+      .select("id, status")
+      .eq("draw_month", drawMonth)
+      .maybeSingle();
+
+    if (drawError) {
+      setMessage(drawError.message);
+      setIsSuccess(false);
+      setSubmitting(false);
+      return;
+    }
+
+    if (!draw) {
+      setMessage("Current monthly draw is not available.");
+      setIsSuccess(false);
+      setSubmitting(false);
+      return;
+    }
+
+    if (draw.status !== "draft" && draw.status !== "simulated") {
+      setMessage("This draw is not open for entries.");
+      setIsSuccess(false);
+      setSubmitting(false);
+      return;
+    }
+
+    const { error } = await supabase.from("draw_entries").insert({
+      draw_id: draw.id,
+      user_id: user.id,
+      number_1: scores[0].score,
+      number_2: scores[1].score,
+      number_3: scores[2].score,
+      number_4: scores[3].score,
+      number_5: scores[4].score,
+      matches_count: 0,
+    });
+
+    if (error) {
+      if (error.code === "23505") {
+        setMessage("You have already entered this draw.");
+        setHasEntered(true);
+      } else {
+        setMessage(error.message);
+      }
+      setIsSuccess(false);
+      setSubmitting(false);
+      return;
+    }
+
+    setIsSuccess(true);
+    setHasEntered(true);
+    setMessage("You have successfully entered the current draw.");
+    setSubmitting(false);
+  }
 
   if (loading) {
     return (
@@ -64,9 +190,17 @@ export default function DrawPage() {
     <main className="min-h-full">
       <div className="mx-auto max-w-4xl space-y-6">
         <div className="rounded-2xl border border-gray-200/80 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900 sm:p-8">
-          <p className="text-xs font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
-            MONTHLY DRAW
-          </p>
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+              MONTHLY DRAW
+            </p>
+            {hasEntered && (
+              <span className="rounded-full bg-emerald-100 dark:bg-emerald-950/60 px-3 py-1 text-xs font-bold text-emerald-700 dark:text-emerald-300 flex items-center gap-1.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                Entered
+              </span>
+            )}
+          </div>
 
           <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
             Your Draw Entry
@@ -77,7 +211,13 @@ export default function DrawPage() {
           </p>
 
           {message && (
-            <div className="mt-4 rounded-xl bg-red-50 p-4 text-sm text-red-600 dark:bg-red-950/40 dark:text-red-400">
+            <div
+              className={`mt-4 rounded-xl border p-4 text-sm font-medium ${
+                isSuccess
+                  ? "border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300"
+                  : "border-red-200 bg-red-50 text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-400"
+              }`}
+            >
               {message}
             </div>
           )}
@@ -138,14 +278,22 @@ export default function DrawPage() {
                 </h2>
 
                 <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                  Ready for the monthly draw.
+                  {hasEntered
+                    ? "You are registered in the current monthly draw with your 5 numbers."
+                    : "Ready for the monthly draw."}
                 </p>
 
                 <button
                   type="button"
-                  className="mt-5 rounded-xl bg-slate-950 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 dark:bg-emerald-500 dark:text-slate-950 dark:hover:bg-emerald-400 cursor-pointer"
+                  onClick={handleEnterDraw}
+                  disabled={submitting}
+                  className="mt-5 rounded-xl bg-slate-950 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 dark:bg-emerald-500 dark:text-slate-950 dark:hover:bg-emerald-400 cursor-pointer disabled:opacity-50"
                 >
-                  Enter Current Draw
+                  {submitting
+                    ? "Submitting Entry..."
+                    : hasEntered
+                    ? "Enter Current Draw Again"
+                    : "Enter Current Draw"}
                 </button>
               </div>
             </>

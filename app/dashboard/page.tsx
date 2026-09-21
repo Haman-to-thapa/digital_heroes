@@ -31,6 +31,7 @@ export default function DashboardPage() {
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [scoreCount, setScoreCount] = useState(0);
   const [latestScore, setLatestScore] = useState<number | null>(null);
+  const [userEmail, setUserEmail] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -43,6 +44,8 @@ export default function DashboardPage() {
         router.push("/login");
         return;
       }
+
+      setUserEmail(user.email || "");
 
       // 1. Fetch profile with charity info
       const { data: profileData } = await supabase
@@ -122,14 +125,25 @@ export default function DashboardPage() {
         <div className="rounded-2xl border border-gray-200/80 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900 sm:p-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
-                Welcome back
-              </p>
-              <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
-                {profile?.full_name || "User"}
+              {/* Upper: Role Badge */}
+              <div className="flex items-center gap-2 mb-2">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-500/20 shadow-xs">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  Role: {profile?.role || "Golfer"}
+                </span>
+                <span className="text-xs font-medium text-slate-400 dark:text-slate-500">
+                  • Verified Member
+                </span>
+              </div>
+
+              {/* Main Heading: User Name / Full Name */}
+              <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
+                {profile?.full_name || (userEmail ? userEmail.split("@")[0] : "Golfer")}
               </h1>
-              <p className="mt-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                Role: <span className="text-gray-900 dark:text-white">{profile?.role}</span>
+
+              {/* Subtext: User Account details */}
+              <p className="mt-2 text-xs font-medium text-gray-500 dark:text-gray-400">
+                Connected account: <span className="font-semibold text-gray-800 dark:text-gray-200">{userEmail}</span>
               </p>
             </div>
 

@@ -13,6 +13,7 @@ export function Navbar() {
   const supabase = createClient();
   const [user, setUser] = useState<User | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -34,23 +35,31 @@ export function Navbar() {
   }, [pathname]);
 
   async function handleLogout() {
-    await supabase.auth.signOut();
-    setMobileMenuOpen(false);
-    router.push("/login");
-    router.refresh();
+    try {
+      setLoggingOut(true);
+      await supabase.auth.signOut();
+      setMobileMenuOpen(false);
+      router.push("/login");
+      router.refresh();
+    } finally {
+      setLoggingOut(false);
+    }
   }
 
-  // The dashboard has its own dedicated sidebar & mobile navigation layout
-  if (pathname.startsWith("/dashboard")) {
+  // Hide the public navbar on /dashboard routes since it has its own dedicated sidebar & mobile layout
+  if (pathname?.startsWith("/dashboard")) {
     return null;
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-slate-200/80 bg-white/90 backdrop-blur-md transition-colors dark:border-slate-800/80 dark:bg-[#080c14]/90">
+    <header className="sticky top-0 z-50 w-full border-b border-slate-200/80 bg-white/85 backdrop-blur-xl transition-colors dark:border-slate-800/80 dark:bg-[#080c14]/85">
+      {/* Top emerald accent line */}
+      <div className="h-[2px] w-full bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-600" />
+
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Logo */}
         <Link href="/" className="flex items-center space-x-2.5 group">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-950 text-white shadow-xs transition group-hover:bg-emerald-600 dark:bg-emerald-500 dark:text-slate-950">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-950 text-white shadow-xs transition group-hover:scale-105 group-hover:bg-emerald-600 dark:bg-emerald-500 dark:text-slate-950">
             <svg
               className="h-4 w-4"
               viewBox="0 0 24 24"
@@ -64,104 +73,86 @@ export function Navbar() {
               <line x1="4" y1="22" x2="4" y2="15" />
             </svg>
           </div>
-          <span className="text-base font-semibold tracking-tight text-slate-950 dark:text-white">
-            Digital <span className="font-serif italic font-normal text-emerald-600 dark:text-emerald-400">Heroes</span>
-          </span>
+          <div>
+            <span className="text-base font-bold tracking-tight text-slate-950 dark:text-white">
+              Digital <span className="font-serif italic font-normal text-emerald-600 dark:text-emerald-400">Heroes</span>
+            </span>
+          </div>
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-1 sm:space-x-2">
+        <nav className="hidden md:flex items-center space-x-2 sm:space-x-3">
+          <Link
+            href="/charities"
+            className={`rounded-xl px-3.5 py-1.5 text-sm font-medium transition ${
+              pathname === "/charities"
+                ? "bg-slate-100 text-slate-950 dark:bg-slate-800 dark:text-white"
+                : "text-slate-600 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white"
+            }`}
+          >
+            Charities
+          </Link>
+
           {user ? (
-            <>
+            <div className="flex items-center space-x-2.5 pl-2 border-l border-slate-200 dark:border-slate-800">
+              {/* User Avatar Chip */}
+              <div className="flex items-center space-x-2 rounded-xl bg-slate-100/80 px-2.5 py-1 text-xs font-semibold text-slate-700 dark:bg-slate-800/80 dark:text-slate-300">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-[10px] font-bold text-white">
+                  {user.email?.charAt(0).toUpperCase() || "U"}
+                </span>
+                <span className="max-w-[110px] truncate">{user.email?.split("@")[0]}</span>
+              </div>
+
+              {/* Dashboard Button */}
               <Link
                 href="/dashboard"
-                className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
-                  pathname === "/dashboard"
-                    ? "bg-slate-100 text-slate-950 dark:bg-slate-800 dark:text-white"
-                    : "text-slate-600 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white"
-                }`}
+                className="flex items-center space-x-1.5 rounded-xl bg-emerald-600 px-3.5 py-1.5 text-sm font-semibold text-white shadow-xs transition hover:bg-emerald-500"
               >
-                Dashboard
+                <span>Dashboard</span>
+                <span className="text-xs">→</span>
               </Link>
-              <Link
-                href="/dashboard/scores"
-                className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
-                  pathname === "/dashboard/scores"
-                    ? "bg-slate-100 text-slate-950 dark:bg-slate-800 dark:text-white"
-                    : "text-slate-600 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white"
-                }`}
-              >
-                Scores
-              </Link>
-              <Link
-                href="/charities"
-                className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
-                  pathname === "/charities"
-                    ? "bg-slate-100 text-slate-950 dark:bg-slate-800 dark:text-white"
-                    : "text-slate-600 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white"
-                }`}
-              >
-                Charities
-              </Link>
-              <Link
-                href="/dashboard/subscription"
-                className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
-                  pathname === "/dashboard/subscription"
-                    ? "bg-slate-100 text-slate-950 dark:bg-slate-800 dark:text-white"
-                    : "text-slate-600 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white"
-                }`}
-              >
-                Subscription
-              </Link>
-              <Link
-                href="/dashboard/draw"
-                className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
-                  pathname === "/dashboard/draw"
-                    ? "bg-slate-100 text-slate-950 dark:bg-slate-800 dark:text-white"
-                    : "text-slate-600 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white"
-                }`}
-              >
-                Draw
-              </Link>
+
+              {/* Logout Button */}
               <button
+                type="button"
                 onClick={handleLogout}
-                className="rounded-lg px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40 cursor-pointer"
+                disabled={loggingOut}
+                title="Log out"
+                className="flex items-center space-x-1.5 rounded-xl border border-red-200/80 bg-red-50/60 px-3 py-1.5 text-sm font-semibold text-red-600 transition hover:bg-red-100 dark:border-red-950/60 dark:bg-red-950/30 dark:text-red-400 cursor-pointer disabled:opacity-50"
               >
-                Logout
+                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                  />
+                </svg>
+                <span>{loggingOut ? "..." : "Logout"}</span>
               </button>
-            </>
+            </div>
           ) : (
-            <>
-              <Link
-                href="/charities"
-                className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
-                  pathname === "/charities"
-                    ? "bg-slate-100 text-slate-950 dark:bg-slate-800 dark:text-white"
-                    : "text-slate-600 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white"
-                }`}
-              >
-                Charities
-              </Link>
+            <div className="flex items-center space-x-2 pl-2 border-l border-slate-200 dark:border-slate-800">
               <Link
                 href="/login"
-                className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
+                className={`rounded-xl px-3.5 py-1.5 text-sm font-medium transition ${
                   pathname === "/login"
                     ? "bg-slate-100 text-slate-950 dark:bg-slate-800 dark:text-white"
                     : "text-slate-600 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white"
                 }`}
               >
-                Login
+                Sign In
               </Link>
               <Link
                 href="/signup"
-                className="rounded-lg bg-slate-950 px-4 py-1.5 text-sm font-semibold text-white shadow-xs transition hover:bg-slate-800 dark:bg-emerald-500 dark:text-slate-950 dark:hover:bg-emerald-400"
+                className="rounded-xl bg-slate-950 px-4 py-1.5 text-sm font-semibold text-white shadow-xs transition hover:bg-slate-800 dark:bg-emerald-500 dark:text-slate-950 dark:hover:bg-emerald-400"
               >
-                Join
+                Join Now
               </Link>
-            </>
+            </div>
           )}
 
-          <div className="pl-2 border-l border-slate-200 dark:border-slate-800 ml-1">
+          <div className="pl-1 border-l border-slate-200 dark:border-slate-800">
             <ThemeToggle />
           </div>
         </nav>
@@ -174,7 +165,7 @@ export function Navbar() {
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label="Toggle navigation menu"
-            className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 shadow-xs transition hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 shadow-xs transition hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800 cursor-pointer"
           >
             {mobileMenuOpen ? (
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -191,97 +182,67 @@ export function Navbar() {
 
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
-        <div className="border-b border-slate-200 bg-white px-4 pt-3 pb-5 shadow-lg dark:border-slate-800 dark:bg-[#080c14] md:hidden animate-in fade-in slide-in-from-top-2 duration-200">
-          <div className="flex flex-col space-y-2">
+        <div className="border-b border-slate-200 bg-white/95 px-4 pt-3 pb-6 shadow-xl backdrop-blur-xl dark:border-slate-800 dark:bg-[#080c14]/95 md:hidden animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="flex flex-col space-y-2.5">
+            <Link
+              href="/charities"
+              onClick={() => setMobileMenuOpen(false)}
+              className={`rounded-xl px-3.5 py-2.5 text-sm font-medium transition ${
+                pathname === "/charities"
+                  ? "bg-slate-100 text-slate-950 dark:bg-slate-800 dark:text-white"
+                  : "text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-900"
+              }`}
+            >
+              Charity Directory
+            </Link>
+
             {user ? (
               <>
+                <div className="flex items-center space-x-2.5 px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-800/60">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500 text-xs font-bold text-white">
+                    {user.email?.charAt(0).toUpperCase() || "U"}
+                  </span>
+                  <div className="overflow-hidden">
+                    <p className="truncate text-xs font-semibold text-slate-900 dark:text-white">
+                      {user.email}
+                    </p>
+                  </div>
+                </div>
+
                 <Link
                   href="/dashboard"
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`rounded-xl px-3.5 py-2.5 text-sm font-medium transition ${
-                    pathname === "/dashboard"
-                      ? "bg-slate-100 text-slate-950 dark:bg-slate-800 dark:text-white"
-                      : "text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-900"
-                  }`}
+                  className="flex items-center justify-center space-x-2 rounded-xl bg-emerald-600 py-2.5 text-center text-sm font-semibold text-white shadow-xs transition hover:bg-emerald-500"
                 >
-                  Dashboard
+                  <span>Go to Member Dashboard</span>
+                  <span>→</span>
                 </Link>
-                <Link
-                  href="/dashboard/scores"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`rounded-xl px-3.5 py-2.5 text-sm font-medium transition ${
-                    pathname === "/dashboard/scores"
-                      ? "bg-slate-100 text-slate-950 dark:bg-slate-800 dark:text-white"
-                      : "text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-900"
-                  }`}
+
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  disabled={loggingOut}
+                  className="flex w-full items-center justify-center space-x-2 rounded-xl border border-red-200 bg-red-50/70 py-2.5 text-sm font-semibold text-red-600 transition hover:bg-red-100 dark:border-red-950/60 dark:bg-red-950/30 dark:text-red-400 cursor-pointer"
                 >
-                  Golf Scores
-                </Link>
-                <Link
-                  href="/charities"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`rounded-xl px-3.5 py-2.5 text-sm font-medium transition ${
-                    pathname === "/charities"
-                      ? "bg-slate-100 text-slate-950 dark:bg-slate-800 dark:text-white"
-                      : "text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-900"
-                  }`}
-                >
-                  Charity Directory
-                </Link>
-                <Link
-                  href="/dashboard/subscription"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`rounded-xl px-3.5 py-2.5 text-sm font-medium transition ${
-                    pathname === "/dashboard/subscription"
-                      ? "bg-slate-100 text-slate-950 dark:bg-slate-800 dark:text-white"
-                      : "text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-900"
-                  }`}
-                >
-                  Membership & Plans
-                </Link>
-                <Link
-                  href="/dashboard/draw"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`rounded-xl px-3.5 py-2.5 text-sm font-medium transition ${
-                    pathname === "/dashboard/draw"
-                      ? "bg-slate-100 text-slate-950 dark:bg-slate-800 dark:text-white"
-                      : "text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-900"
-                  }`}
-                >
-                  Monthly Draw
-                </Link>
-                <div className="pt-2">
-                  <button
-                    onClick={handleLogout}
-                    className="w-full rounded-xl border border-red-200 bg-red-50/50 py-2.5 text-center text-sm font-medium text-red-600 transition hover:bg-red-50 dark:border-red-950/60 dark:bg-red-950/30 dark:text-red-400"
-                  >
-                    Log out
-                  </button>
-                </div>
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                    />
+                  </svg>
+                  <span>{loggingOut ? "Signing out..." : "Log out"}</span>
+                </button>
               </>
             ) : (
               <>
                 <Link
-                  href="/charities"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`rounded-xl px-3.5 py-2.5 text-sm font-medium transition ${
-                    pathname === "/charities"
-                      ? "bg-slate-100 text-slate-950 dark:bg-slate-800 dark:text-white"
-                      : "text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-900"
-                  }`}
-                >
-                  Charities
-                </Link>
-                <Link
                   href="/login"
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`rounded-xl px-3.5 py-2.5 text-sm font-medium transition ${
-                    pathname === "/login"
-                      ? "bg-slate-100 text-slate-950 dark:bg-slate-800 dark:text-white"
-                      : "text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-900"
-                  }`}
+                  className="rounded-xl px-3.5 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-900"
                 >
-                  Member Login
+                  Member Sign In
                 </Link>
                 <Link
                   href="/signup"

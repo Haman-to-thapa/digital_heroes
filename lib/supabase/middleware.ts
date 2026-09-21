@@ -46,6 +46,7 @@ export async function updateSession(request: NextRequest) {
   // Protect /dashboard and checkout creation; exclude stripe webhook which is invoked by Stripe servers
   const isProtected =
     pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/admin") ||
     (pathname.startsWith("/api/stripe") && !pathname.startsWith("/api/stripe/webhook"));
 
   if (isProtected && !isAuthenticated) {

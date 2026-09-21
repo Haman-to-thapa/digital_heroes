@@ -2,10 +2,12 @@
 
 import { FormEvent, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 export default function SignupPage() {
   const supabase = createClient();
+  const router = useRouter();
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -13,6 +15,7 @@ export default function SignupPage() {
 
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [isSuccess, setIsSuccess] = useState(false);
 
   async function handleSignup(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -32,12 +35,19 @@ export default function SignupPage() {
 
     if (error) {
       setMessage(error.message);
+      setIsSuccess(false);
       setLoading(false);
       return;
     }
 
-    setMessage("Signup successful! You can now login.");
+    setIsSuccess(true);
+    setMessage("Account created successfully! Redirecting to login...");
     setLoading(false);
+
+    // Automatically redirect to login page
+    setTimeout(() => {
+      router.push("/login?registered=true");
+    }, 1200);
   }
 
   return (
@@ -107,7 +117,7 @@ export default function SignupPage() {
         {message && (
           <p
             className={`mt-4 rounded-xl border p-3 text-sm font-medium ${
-              message.includes("successful")
+              isSuccess
                 ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-400"
                 : "border-red-200 bg-red-50 text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-400"
             }`}
