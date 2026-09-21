@@ -29,7 +29,8 @@ export default function DashboardPage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [charity, setCharity] = useState<Charity | null>(null);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
-  const [scoresCount, setScoresCount] = useState<number>(0);
+  const [scoreCount, setScoreCount] = useState(0);
+  const [latestScore, setLatestScore] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -78,18 +79,28 @@ export default function DashboardPage() {
 
       setSubscription(subscriptionData);
 
-      // 3. Fetch scores count
-      const { count } = await supabase
+      // 3. Fetch user's latest 5 scores
+      const { data: scoreData } = await supabase
         .from("scores")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", user.id);
+        .select("score, score_date")
+        .eq("user_id", user.id)
+        .order("score_date", { ascending: false })
+        .limit(5);
 
-      setScoresCount(count || 0);
+      setScoreCount(scoreData?.length || 0);
+      setLatestScore(scoreData?.[0]?.score ?? null);
+
       setLoading(false);
     }
 
     loadDashboardData();
   }, [router, supabase]);
+
+  async function handleLogout() {
+    await supabase.auth.signOut();
+    router.push("/login");
+    router.refresh();
+  }
 
   if (loading) {
     return (
@@ -106,6 +117,48 @@ export default function DashboardPage() {
 
   return (
     <main className="min-h-full p-4 sm:p-6 lg:p-8">
+      {/* 45.3 Dashboard Navigation Bar */}
+      <div className="mx-auto mb-6 max-w-6xl">
+        <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-gray-200/80 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              href="/dashboard"
+              className="rounded-xl bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400"
+            >
+              Dashboard
+            </Link>
+
+            <Link
+              href="/dashboard/scores"
+              className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+            >
+              Scores
+            </Link>
+
+            <Link
+              href="/dashboard/charity"
+              className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+            >
+              Charity
+            </Link>
+
+            <Link
+              href="/dashboard/subscription"
+              className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+            >
+              Subscription
+            </Link>
+          </div>
+
+          <button
+            onClick={handleLogout}
+            className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-red-500 cursor-pointer"
+          >
+            Logout
+          </button>
+        </div>
+      </div>
+
       <div className="mx-auto max-w-6xl space-y-6">
         {/* Profile Header Card */}
         <div className="rounded-2xl border border-gray-200/80 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900 sm:p-8">
@@ -139,7 +192,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Stats Grid - 5 Cards including Live Subscription */}
+        {/* Stats Grid - 5 Cards */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           {/* Card 1: Subscription (LIVE FROM SUPABASE) */}
           <div className="rounded-2xl border border-gray-200/80 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
@@ -215,16 +268,18 @@ export default function DashboardPage() {
               Golf Scores
             </p>
             <h2 className="mt-2 text-xl font-bold text-gray-900 dark:text-white">
-              {scoresCount} / 5
+              {scoreCount} / 5
             </h2>
-            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              Stableford format
+            <p className="mt-1 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+              {latestScore !== null
+                ? `Latest score: ${latestScore}`
+                : "No scores yet"}
             </p>
             <Link
               href="/dashboard/scores"
               className="mt-2 inline-block text-xs font-medium text-emerald-600 hover:underline dark:text-emerald-400"
             >
-              Add / View &rarr;
+              Manage scores &rarr;
             </Link>
           </div>
 
