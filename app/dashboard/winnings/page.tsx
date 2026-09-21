@@ -38,6 +38,17 @@ export default function WinningsPage() {
       return;
     }
 
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+
+    if (profile?.role === "admin") {
+      router.push("/admin/winners");
+      return;
+    }
+
     const { data, error } = await supabase
       .from("winners")
       .select(

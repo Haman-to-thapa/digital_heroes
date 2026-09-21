@@ -221,6 +221,29 @@ export default function DrawPage() {
             Your latest five Stableford scores will be used for the current draw entry.
           </p>
 
+          {/* Dedicated Admin Helper Banner */}
+          <div className="mt-4 rounded-2xl border-2 border-emerald-500/40 bg-emerald-500/10 p-5 dark:border-emerald-500/30 dark:bg-emerald-950/30">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div>
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-600 px-2.5 py-0.5 text-[10px] font-black uppercase text-white">
+                  👑 Admin Role
+                </span>
+                <h3 className="mt-1 text-base font-bold text-gray-900 dark:text-white">
+                  Looking to run or manage the Monthly Draw?
+                </h3>
+                <p className="text-xs text-gray-600 dark:text-gray-300">
+                  As an Admin, you do not need to enter scores. You can generate winning numbers, publish the draw, and calculate winners in the Admin Draw Controller.
+                </p>
+              </div>
+              <Link
+                href="/admin/draw"
+                className="inline-flex items-center justify-center rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-emerald-500 shrink-0"
+              >
+                Go to Draw Controller 🎲 &rarr;
+              </Link>
+            </div>
+          </div>
+
           {message && (
             <div
               className={`mt-4 rounded-xl border p-4 text-sm font-medium ${

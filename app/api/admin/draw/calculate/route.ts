@@ -99,10 +99,11 @@ export async function POST() {
     }
 
     if (!entries || entries.length === 0) {
-      return NextResponse.json(
-        { error: "No entries found for this draw" },
-        { status: 400 }
-      );
+      return NextResponse.json({
+        message: "No entries entered by golfers for this draw yet.",
+        totalEntries: 0,
+        totalWinners: 0,
+      });
     }
 
     const winners = [];

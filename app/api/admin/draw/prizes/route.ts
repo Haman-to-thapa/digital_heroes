@@ -84,10 +84,24 @@ export async function POST() {
     }
 
     if (!winners || winners.length === 0) {
-      return NextResponse.json(
-        { error: "No winners found" },
-        { status: 400 }
-      );
+      return NextResponse.json({
+        message: "No entries matched 3 or more numbers in this draw. Prize pools rollover!",
+        fiveMatch: {
+          winners: 0,
+          pool: Number(draw.five_match_pool || 0),
+          prizeEach: 0,
+        },
+        fourMatch: {
+          winners: 0,
+          pool: Number(draw.four_match_pool || 0),
+          prizeEach: 0,
+        },
+        threeMatch: {
+          winners: 0,
+          pool: Number(draw.three_match_pool || 0),
+          prizeEach: 0,
+        },
+      });
     }
 
     // 6. Count winners by tier

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 type Charity = {
   id: string;
@@ -22,6 +23,7 @@ export default function CharityPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
+  const [userRole, setUserRole] = useState("user");
 
   // Impact metrics
   const [totalPlatformDonated, setTotalPlatformDonated] = useState(0);
@@ -39,15 +41,19 @@ export default function CharityPage() {
         return;
       }
 
-      // 1. Fetch user's profile charity_id
+      // 1. Fetch user's profile charity_id and role
       const { data: profileData, error: profileErr } = await supabase
         .from("profiles")
-        .select("charity_id")
+        .select("charity_id, role")
         .eq("id", user.id)
         .single();
 
       if (profileErr) {
         console.error("Error loading profile charity:", profileErr);
+      }
+
+      if (profileData?.role) {
+        setUserRole(profileData.role);
       }
 
       setSelectedCharity(profileData?.charity_id || "");
@@ -159,6 +165,31 @@ export default function CharityPage() {
             </p>
           </div>
         </div>
+
+        {/* Administrator Dedicated Banner */}
+        {userRole === "admin" && (
+          <div className="overflow-hidden rounded-2xl border-2 border-amber-500/80 bg-amber-500/10 p-5 dark:border-amber-500/50 dark:bg-amber-950/40">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div>
+                <span className="rounded-full bg-amber-500 px-2.5 py-0.5 text-[10px] font-black uppercase text-slate-950">
+                  👑 Admin View
+                </span>
+                <h3 className="mt-1 text-base font-bold text-slate-950 dark:text-white">
+                  Looking for Platform Charity Donations Audit?
+                </h3>
+                <p className="text-xs text-slate-600 dark:text-slate-300">
+                  As an Administrator, you can audit all donor transactions, amounts collected per charity, and member contributions in one central place.
+                </p>
+              </div>
+              <Link
+                href="/admin/charity"
+                className="rounded-xl bg-amber-600 px-4 py-2.5 text-xs font-bold text-white hover:bg-amber-500 shrink-0 shadow-sm"
+              >
+                Open Charity Donations Audit 🎗️ &rarr;
+              </Link>
+            </div>
+          </div>
+        )}
 
         {/* ============================================================== */}
         {/* COMMUNITY & PERSONAL CHARITY IMPACT CARDS                      */}

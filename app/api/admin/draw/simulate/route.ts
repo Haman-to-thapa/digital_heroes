@@ -68,14 +68,29 @@ export async function POST() {
       );
     }
 
-    if (!draw) {
-      return NextResponse.json(
-        { error: "Current draw not found" },
-        { status: 404 }
-      );
+    let currentDraw = draw;
+    if (!currentDraw) {
+      const { data: newDraw, error: createError } = await supabaseAdmin
+        .from("draws")
+        .insert({
+          draw_month: drawMonth,
+          draw_type: "random",
+          status: "draft",
+          total_prize_pool: 0,
+        })
+        .select("id, draw_type, status")
+        .single();
+
+      if (createError) {
+        return NextResponse.json(
+          { error: createError.message },
+          { status: 500 }
+        );
+      }
+      currentDraw = newDraw;
     }
 
-    if (draw.status === "published") {
+    if (currentDraw.status === "published") {
       return NextResponse.json(
         { error: "Published draw cannot be simulated again" },
         { status: 400 }
@@ -90,11 +105,11 @@ export async function POST() {
       await supabaseAdmin
         .from("draws")
         .update({
-          draw_type: draw.draw_type || "random",
+          draw_type: currentDraw.draw_type || "random",
           status: "simulated",
           winning_numbers: winningNumbers,
         })
-        .eq("id", draw.id)
+        .eq("id", currentDraw.id)
         .select()
         .single();
 

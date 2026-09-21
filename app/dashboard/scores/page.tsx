@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 type Score = {
   id: string;
@@ -21,6 +22,7 @@ export default function ScoresPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
+  const [userRole, setUserRole] = useState("user");
 
   async function fetchScores() {
     const {
@@ -30,6 +32,16 @@ export default function ScoresPage() {
     if (!user) {
       router.push("/login");
       return;
+    }
+
+    const { data: profileData } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+
+    if (profileData?.role) {
+      setUserRole(profileData.role);
     }
 
     const { data, error } = await supabase
@@ -250,6 +262,31 @@ export default function ScoresPage() {
   return (
     <main className="min-h-full p-4 sm:p-6 lg:p-8">
       <div className="mx-auto max-w-4xl space-y-6">
+        {/* Administrator Dedicated Notice */}
+        {userRole === "admin" && (
+          <div className="overflow-hidden rounded-2xl border-2 border-amber-500/80 bg-amber-500/10 p-5 dark:border-amber-500/50 dark:bg-amber-950/40">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div>
+                <span className="rounded-full bg-amber-500 px-2.5 py-0.5 text-[10px] font-black uppercase text-slate-950">
+                  👑 Admin Role
+                </span>
+                <h3 className="mt-1 text-base font-bold text-slate-950 dark:text-white">
+                  Looking to run the Monthly Draw?
+                </h3>
+                <p className="text-xs text-slate-600 dark:text-slate-300">
+                  Golfers use this page to submit 5 Stableford scores. As an Admin, you do not need to log personal scores—manage the monthly sweepstakes in the Draw Controller.
+                </p>
+              </div>
+              <Link
+                href="/admin/draw"
+                className="rounded-xl bg-amber-600 px-4 py-2.5 text-xs font-bold text-white hover:bg-amber-500 shrink-0 shadow-sm"
+              >
+                Go to Draw Controller 🎲 &rarr;
+              </Link>
+            </div>
+          </div>
+        )}
+
         {/* Form Card (Add / Edit) */}
         <div className="rounded-2xl border border-gray-200/80 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center justify-between">

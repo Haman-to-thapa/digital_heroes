@@ -453,10 +453,16 @@ export default function SubscriptionPage() {
                   <span>Admin Access Unlocked (No Checkout Needed)</span>
                 </div>
                 <a
-                  href="/dashboard/draw"
-                  className="rounded-xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white shadow-xs transition hover:bg-emerald-500"
+                  href="/admin/subscriptions"
+                  className="rounded-xl bg-slate-950 px-5 py-3 text-sm font-bold text-white shadow-xs transition hover:bg-slate-800 dark:bg-emerald-600 dark:hover:bg-emerald-500"
                 >
-                  Enter Monthly Draw &rarr;
+                  Audit All Subscribers &rarr;
+                </a>
+                <a
+                  href="/admin/payments"
+                  className="rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-bold text-slate-800 shadow-xs transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-850 dark:text-white"
+                >
+                  View Payments & Revenue &rarr;
                 </a>
               </div>
             ) : isSubscribed ? (
