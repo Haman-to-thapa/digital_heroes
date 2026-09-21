@@ -36,21 +36,23 @@ export default function DashboardLayout({
         const { data } = await supabase.auth.getUser();
         setUser(data.user);
         if (data.user) {
-          const { data: prof } = await supabase
-            .from("profiles")
-            .select("full_name, role")
-            .eq("id", data.user.id)
-            .single();
-          if (prof) setProfile(prof);
+          const [profRes, subRes] = await Promise.all([
+            supabase
+              .from("profiles")
+              .select("full_name, role")
+              .eq("id", data.user.id)
+              .single(),
+            supabase
+              .from("subscriptions")
+              .select("status, plan_type")
+              .eq("user_id", data.user.id)
+              .order("created_at", { ascending: false })
+              .limit(1)
+              .maybeSingle(),
+          ]);
 
-          const { data: sub } = await supabase
-            .from("subscriptions")
-            .select("status, plan_type")
-            .eq("user_id", data.user.id)
-            .order("created_at", { ascending: false })
-            .limit(1)
-            .maybeSingle();
-          if (sub) setSubscription(sub);
+          if (profRes.data) setProfile(profRes.data);
+          if (subRes.data) setSubscription(subRes.data);
         }
       } finally {
         setLoading(false);

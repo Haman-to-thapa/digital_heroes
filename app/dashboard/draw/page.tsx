@@ -36,13 +36,25 @@ export default function DrawPage() {
 
       setUserId(user.id);
 
-      // Fetch role — redirect admin to their own Draw Controller
-      const { data: profileData } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", user.id)
-        .single();
+      const now = new Date();
+      const currentMonth = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}-01`;
 
+      const [profileRes, scoreRes, drawRes] = await Promise.all([
+        supabase.from("profiles").select("role").eq("id", user.id).single(),
+        supabase
+          .from("scores")
+          .select("score, score_date")
+          .eq("user_id", user.id)
+          .order("score_date", { ascending: false })
+          .limit(5),
+        supabase
+          .from("draws")
+          .select("id")
+          .eq("draw_month", currentMonth)
+          .maybeSingle(),
+      ]);
+
+      const profileData = profileRes.data;
       if (profileData?.role) {
         setUserRole(profileData.role);
         if (profileData.role === "admin") {
@@ -51,32 +63,15 @@ export default function DrawPage() {
         }
       }
 
-      // 1. Fetch latest 5 scores
-      const { data: scoreData, error: scoreErr } = await supabase
-        .from("scores")
-        .select("score, score_date")
-        .eq("user_id", user.id)
-        .order("score_date", { ascending: false })
-        .limit(5);
-
-      if (scoreErr) {
-        setMessage(scoreErr.message);
+      if (scoreRes.error) {
+        setMessage(scoreRes.error.message);
         setLoading(false);
         return;
       }
 
-      setScores(scoreData || []);
+      setScores(scoreRes.data || []);
 
-      // 2. Check if user already entered current month's draw
-      const now = new Date();
-      const currentMonth = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}-01`;
-
-      const { data: draw } = await supabase
-        .from("draws")
-        .select("id")
-        .eq("draw_month", currentMonth)
-        .maybeSingle();
-
+      const draw = drawRes.data;
       if (draw) {
         const { data: existingEntry } = await supabase
           .from("draw_entries")

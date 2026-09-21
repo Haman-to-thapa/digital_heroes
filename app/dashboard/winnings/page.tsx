@@ -38,32 +38,29 @@ export default function WinningsPage() {
       return;
     }
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
+    const [profileRes, winnersRes] = await Promise.all([
+      supabase.from("profiles").select("role").eq("id", user.id).single(),
+      supabase
+        .from("winners")
+        .select(
+          "id, match_type, prize_amount, verification_status, payout_status, created_at"
+        )
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false }),
+    ]);
 
-    if (profile?.role === "admin") {
+    if (profileRes.data?.role === "admin") {
       router.push("/admin/winners");
       return;
     }
 
-    const { data, error } = await supabase
-      .from("winners")
-      .select(
-        "id, match_type, prize_amount, verification_status, payout_status, created_at"
-      )
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      console.error("Error fetching winnings:", error);
+    if (winnersRes.error) {
+      console.error("Error fetching winnings:", winnersRes.error);
       setLoading(false);
       return;
     }
 
-    const winnerData = data || [];
+    const winnerData = winnersRes.data || [];
     setWinnings(winnerData);
 
     const total = winnerData.reduce(

@@ -71,13 +71,37 @@ export default function DashboardPage() {
 
       setUserEmail(user.email || "");
 
-      // 1. Fetch profile
-      const { data: profileData } = await supabase
-        .from("profiles")
-        .select("full_name, role, charity_id")
-        .eq("id", user.id)
-        .single();
+      // Execute all core user queries in parallel
+      const [profileRes, subRes, scoresRes, entriesRes, winningsRes] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("full_name, role, charity_id")
+          .eq("id", user.id)
+          .single(),
+        supabase
+          .from("subscriptions")
+          .select("status, plan_type, current_period_end")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+        supabase
+          .from("scores")
+          .select("score, score_date")
+          .eq("user_id", user.id)
+          .order("score_date", { ascending: false })
+          .limit(5),
+        supabase
+          .from("draw_entries")
+          .select("*", { count: "exact", head: true })
+          .eq("user_id", user.id),
+        supabase
+          .from("winners")
+          .select("prize_amount")
+          .eq("user_id", user.id),
+      ]);
 
+      const profileData = profileRes.data;
       const userRole = profileData?.role || "golfer";
 
       if (profileData) {
@@ -87,111 +111,60 @@ export default function DashboardPage() {
           charity_percentage: savedPercentage,
         });
 
-        // Fetch selected charity details
+        // Fetch selected charity details asynchronously if assigned
         if (profileData.charity_id) {
-          const { data: charityData } = await supabase
+          supabase
             .from("charities")
             .select("name")
             .eq("id", profileData.charity_id)
-            .single();
-
-          if (charityData) {
-            setCharity(charityData);
-          }
+            .single()
+            .then(({ data: charityData }) => {
+              if (charityData) setCharity(charityData);
+            });
         }
       }
 
-      // 2. Fetch golfer subscription status
-      const { data: subscriptionData } = await supabase
-        .from("subscriptions")
-        .select("status, plan_type, current_period_end")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+      setSubscription(subRes.data);
 
-      setSubscription(subscriptionData);
+      const scoreData = scoresRes.data || [];
+      setScoreCount(scoreData.length);
+      setLatestScore(scoreData[0]?.score ?? null);
 
-      // 3. Fetch user's latest scores
-      const { data: scoreData } = await supabase
-        .from("scores")
-        .select("score, score_date")
-        .eq("user_id", user.id)
-        .order("score_date", { ascending: false })
-        .limit(5);
+      setDrawCount(entriesRes.count || 0);
 
-      setScoreCount(scoreData?.length || 0);
-      setLatestScore(scoreData?.[0]?.score ?? null);
-
-      // 3b. Fetch draw entries & user total winnings
-      const { count: entryCount } = await supabase
-        .from("draw_entries")
-        .select("*", {
-          count: "exact",
-          head: true,
-        })
-        .eq("user_id", user.id);
-
-      setDrawCount(entryCount || 0);
-
-      const { data: winningsData } = await supabase
-        .from("winners")
-        .select("prize_amount")
-        .eq("user_id", user.id);
-
-      const totalWinnings =
-        winningsData?.reduce(
-          (sum, item) =>
-            sum + Number(item.prize_amount || 0),
-          0
-        ) || 0;
-
+      const totalWinnings = (winningsRes.data || []).reduce(
+        (sum, item) => sum + Number(item.prize_amount || 0),
+        0
+      );
       setWinningsTotal(totalWinnings);
 
-      // 4. If Admin, fetch live platform operations data
+      // If Admin, fetch all platform operations metrics in parallel
       if (userRole === "admin") {
         try {
           const now = new Date();
           const currentMonthStr = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}-01`;
+          const monthName = now.toLocaleString("en-US", { month: "long", year: "numeric" });
 
-          // Active subscribers
-          const { count: subsCount } = await supabase
-            .from("subscriptions")
-            .select("*", { count: "exact", head: true })
-            .eq("status", "active");
+          const [subsRes, drawRes, donationsRes, winnersRes] = await Promise.all([
+            supabase.from("subscriptions").select("*", { count: "exact", head: true }).eq("status", "active"),
+            supabase.from("draws").select("*").eq("draw_month", currentMonthStr).maybeSingle(),
+            supabase.from("donations").select("amount"),
+            supabase.from("winners").select("*", { count: "exact", head: true }),
+          ]);
 
-          // Current draw
-          const { data: currentDraw } = await supabase
-            .from("draws")
-            .select("*")
-            .eq("draw_month", currentMonthStr)
-            .maybeSingle();
-
-          // Total donations from donations table
-          const { data: donationsData } = await supabase
-            .from("donations")
-            .select("amount");
-
-          const donationsSum = (donationsData || []).reduce(
+          const donationsSum = (donationsRes.data || []).reduce(
             (acc, curr) => acc + Number(curr.amount || 0),
             0
           );
 
-          // Total winners
-          const { count: winnersCount } = await supabase
-            .from("winners")
-            .select("*", { count: "exact", head: true });
-
-          const monthName = now.toLocaleString("en-US", { month: "long", year: "numeric" });
-
           setAdminStats({
-            activeSubscribers: subsCount || 0,
+            activeSubscribers: subsRes.count || 0,
             drawMonth: monthName,
-            drawStatus: currentDraw?.status || "draft",
-            winningNumbers: currentDraw?.winning_numbers || [],
-            prizePool: Number(currentDraw?.total_prize_pool || (subsCount || 0) * 100),
+            drawStatus: drawRes.data?.status || "draft",
+            winningNumbers: drawRes.data?.winning_numbers || [],
+            prizePool: Number(drawRes.data?.total_prize_pool || (subsRes.count || 0) * 100),
             totalDonations: donationsSum,
-            totalWinners: winnersCount || 0,
+            totalWinners: winnersRes.count || 0,
           });
         } catch (e) {
           console.error("Error loading admin stats:", e);

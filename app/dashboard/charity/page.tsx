@@ -43,32 +43,28 @@ export default function CharityPage() {
         return;
       }
 
-      // 1. Fetch user's profile charity_id and role
-      const { data: profileData, error: profileErr } = await supabase
-        .from("profiles")
-        .select("charity_id, role")
-        .eq("id", user.id)
-        .single();
-
-      if (profileErr) {
-        console.error("Error loading profile charity:", profileErr);
-      }
-
-      if (profileData?.role) {
-        setUserRole(profileData.role);
-      }
-
-      setSelectedCharity(profileData?.charity_id || "");
-
-      // 2. Load saved contribution percentage from user metadata (default 10%)
       const savedPercentage = Number(user.user_metadata?.charity_percentage) || 10;
       setPercentage(savedPercentage);
 
-      // 3. Fetch 100% real database metrics from /api/charity/impact (donations, profiles, charities)
+      // Fetch profile and impact data in parallel
       try {
-        const res = await fetch("/api/charity/impact");
-        if (res.ok) {
-          const impactData = await res.json();
+        const [profileRes, impactRes] = await Promise.all([
+          supabase
+            .from("profiles")
+            .select("charity_id, role")
+            .eq("id", user.id)
+            .single(),
+          fetch("/api/charity/impact").catch(() => null),
+        ]);
+
+        const profileData = profileRes.data;
+        if (profileData?.role) {
+          setUserRole(profileData.role);
+        }
+        setSelectedCharity(profileData?.charity_id || "");
+
+        if (impactRes && impactRes.ok) {
+          const impactData = await impactRes.json();
           setTotalPlatformDonated(impactData.totalPlatformDonated || 0);
           setUserTotalDonated(impactData.userTotalDonated || 0);
           setActiveSupportersCount(impactData.activeSupportersCount || 0);

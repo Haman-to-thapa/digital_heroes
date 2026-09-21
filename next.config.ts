@@ -1,7 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  compress: true,
+  reactStrictMode: true,
+  experimental: {
+    optimizePackageImports: ["@supabase/ssr", "@supabase/supabase-js"],
+  },
 };
 
 export default nextConfig;

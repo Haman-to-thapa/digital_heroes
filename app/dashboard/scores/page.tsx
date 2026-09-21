@@ -50,29 +50,26 @@ export default function ScoresPage() {
 
     setUserId(user.id);
 
-    const { data: profileData } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
+    const [profileRes, scoresRes] = await Promise.all([
+      supabase.from("profiles").select("role").eq("id", user.id).single(),
+      supabase
+        .from("scores")
+        .select("id, score, score_date")
+        .eq("user_id", user.id)
+        .order("score_date", { ascending: false }),
+    ]);
 
-    if (profileData?.role) {
-      setUserRole(profileData.role);
+    if (profileRes.data?.role) {
+      setUserRole(profileRes.data.role);
     }
 
-    const { data, error } = await supabase
-      .from("scores")
-      .select("id, score, score_date")
-      .eq("user_id", user.id)
-      .order("score_date", { ascending: false });
-
-    if (error) {
-      setMessage(error.message);
+    if (scoresRes.error) {
+      setMessage(scoresRes.error.message);
       setLoading(false);
       return;
     }
 
-    setScores(data || []);
+    setScores(scoresRes.data || []);
     setLoading(false);
   }
 

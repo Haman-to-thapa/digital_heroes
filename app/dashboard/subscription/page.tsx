@@ -38,28 +38,31 @@ export default function SubscriptionPage() {
 
       if (user) {
         setUserEmail(user.email || "");
-        // Check role and full name from profiles
-        const { data: prof } = await supabase
-          .from("profiles")
-          .select("full_name, role")
-          .eq("id", user.id)
-          .single();
 
+        const [profRes, subRes] = await Promise.all([
+          supabase
+            .from("profiles")
+            .select("full_name, role")
+            .eq("id", user.id)
+            .single(),
+          supabase
+            .from("subscriptions")
+            .select("id, plan_type, status, current_period_start, current_period_end, stripe_subscription_id")
+            .eq("user_id", user.id)
+            .eq("status", "active")
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle(),
+        ]);
+
+        const prof = profRes.data;
         if (prof) {
           setUserRole(prof.role || "user");
           setUserName(prof.full_name || user.email?.split("@")[0] || "Golfer");
         }
 
-        const { data, error } = await supabase
-          .from("subscriptions")
-          .select("id, plan_type, status, current_period_start, current_period_end, stripe_subscription_id")
-          .eq("user_id", user.id)
-          .eq("status", "active")
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-
-        if (!error && data) {
+        const data = subRes.data;
+        if (!subRes.error && data) {
           setSubscription(data);
           if (data.plan_type === "monthly" || data.plan_type === "yearly") {
             setSelectedPlan(data.plan_type);
