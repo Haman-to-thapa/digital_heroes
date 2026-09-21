@@ -91,21 +91,32 @@ export default function DrawPage() {
       return;
     }
 
-    // Check active subscription
-    const { data: subscription } = await supabase
-      .from("subscriptions")
-      .select("id, status")
-      .eq("user_id", user.id)
-      .eq("status", "active")
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+    // Check user role
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
 
-    if (!subscription) {
-      setMessage("An active subscription is required to enter the draw.");
-      setIsSuccess(false);
-      setSubmitting(false);
-      return;
+    const isAdmin = profile?.role === "admin";
+
+    // Non-admin users must have an active subscription
+    if (!isAdmin) {
+      const { data: subscription } = await supabase
+        .from("subscriptions")
+        .select("id, status")
+        .eq("user_id", user.id)
+        .eq("status", "active")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (!subscription) {
+        setMessage("An active subscription is required to enter the draw.");
+        setIsSuccess(false);
+        setSubmitting(false);
+        return;
+      }
     }
 
     if (scores.length !== 5) {

@@ -177,6 +177,74 @@ export default function DashboardLayout({
       ),
       badge: "Active",
     },
+    {
+      label: "Winnings",
+      href: "/dashboard/winnings",
+      icon: (active) => (
+        <svg
+          className={`h-5 w-5 transition-colors ${
+            active ? "text-emerald-600 dark:text-emerald-400" : "text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-200"
+          }`}
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
+        </svg>
+      ),
+    },
+  ];
+
+  const adminNavItems: NavItem[] = [
+    {
+      label: "Admin Draw Control",
+      href: "/admin/draw",
+      icon: (active) => (
+        <svg
+          className={`h-5 w-5 transition-colors ${
+            active ? "text-amber-600 dark:text-amber-400" : "text-slate-400 group-hover:text-amber-600 dark:group-hover:text-amber-400"
+          }`}
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+          />
+        </svg>
+      ),
+      badge: "VIP",
+    },
+    {
+      label: "Subscribers Audit",
+      href: "/admin/subscriptions",
+      icon: (active) => (
+        <svg
+          className={`h-5 w-5 transition-colors ${
+            active ? "text-amber-600 dark:text-amber-400" : "text-slate-400 group-hover:text-amber-600 dark:group-hover:text-amber-400"
+          }`}
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+          />
+        </svg>
+      ),
+      badge: "Live",
+    },
   ];
 
   return (
@@ -199,7 +267,7 @@ export default function DashboardLayout({
                 Digital <span className="font-serif italic font-normal text-emerald-600 dark:text-emerald-400">Heroes</span>
               </span>
               <span className="block text-[10px] font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
-                Member Portal
+                {profile?.role === "admin" ? "Admin Portal" : "Member Portal"}
               </span>
             </div>
           </Link>
@@ -235,13 +303,51 @@ export default function DashboardLayout({
                 </Link>
               );
             })}
+
+            {/* Admin Management Section - ONLY FOR ADMIN ROLE */}
+            {profile?.role === "admin" && (
+              <div className="pt-4 mt-4 border-t border-slate-200/80 dark:border-slate-800/80">
+                <div className="px-3 mb-2 flex items-center justify-between">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                    <span>👑</span> Admin Control
+                  </span>
+                  <span className="rounded-full bg-amber-500/10 px-1.5 py-0.2 text-[9px] font-bold text-amber-600 dark:text-amber-400">
+                    All Access
+                  </span>
+                </div>
+                <div className="space-y-1">
+                  {adminNavItems.map((item) => {
+                    const isActive = pathname?.startsWith(item.href);
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        className={`group flex items-center justify-between rounded-xl px-3.5 py-2 text-sm font-medium transition-all ${
+                          isActive
+                            ? "bg-amber-50 text-amber-950 shadow-xs dark:bg-amber-950/40 dark:text-amber-300 font-semibold"
+                            : "text-slate-600 hover:bg-slate-100/80 hover:text-slate-950 dark:text-slate-400 dark:hover:bg-slate-900/80 dark:hover:text-white"
+                        }`}
+                      >
+                        <div className="flex items-center space-x-3">
+                          {item.icon(isActive || false)}
+                          <span>{item.label}</span>
+                        </div>
+                        <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-bold text-amber-700 dark:bg-amber-900/60 dark:text-amber-300">
+                          {item.badge}
+                        </span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </nav>
         </div>
 
-        {/* Bottom Section: User Info, Theme Toggle, Public Link & Logout */}
+        {/* Bottom Section: User Info, Prominent Theme Switcher, Public Link & Logout */}
         <div className="space-y-3 pt-4 border-t border-slate-200/80 dark:border-slate-800/80">
           {/* User Status Chip */}
-          <div className="flex items-center justify-between px-2">
+          <div className="flex items-center justify-between px-1">
             <div className="flex items-center space-x-2.5 overflow-hidden">
               <div className="relative flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
                 {user?.email?.charAt(0).toUpperCase() || "U"}
@@ -261,8 +367,19 @@ export default function DashboardLayout({
                 </p>
               </div>
             </div>
+          </div>
 
-            <ThemeToggle />
+          {/* Prominent Theme Toggle Widget */}
+          <div className="rounded-xl border border-slate-200/90 bg-slate-50/80 p-2 dark:border-slate-800 dark:bg-slate-900/60">
+            <div className="flex items-center justify-between mb-1.5 px-1">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                Theme
+              </span>
+              <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
+                Visible Switch
+              </span>
+            </div>
+            <ThemeToggle variant="segmented" />
           </div>
 
           {/* Links & Logout */}
@@ -318,7 +435,7 @@ export default function DashboardLayout({
         </Link>
 
         <div className="flex items-center space-x-2">
-          <ThemeToggle />
+          <ThemeToggle variant="icon" />
 
           <button
             type="button"
@@ -342,6 +459,16 @@ export default function DashboardLayout({
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
         <div className="border-b border-slate-200 bg-white/95 px-4 pt-3 pb-6 shadow-xl backdrop-blur-xl md:hidden dark:border-slate-800 dark:bg-[#080c14]/95 animate-in fade-in slide-in-from-top-2 duration-200">
+          {/* Mobile Theme Toggle Banner */}
+          <div className="mb-3 rounded-xl border border-slate-200 bg-slate-50 p-2.5 dark:border-slate-800 dark:bg-slate-900">
+            <div className="flex items-center justify-between mb-1.5 px-1">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                Display Theme
+              </span>
+            </div>
+            <ThemeToggle variant="segmented" />
+          </div>
+
           <div className="space-y-1.5">
             {navItems.map((item) => {
               const isActive =
@@ -373,6 +500,38 @@ export default function DashboardLayout({
                 </Link>
               );
             })}
+
+            {/* Admin Controls on Mobile */}
+            {profile?.role === "admin" && (
+              <div className="pt-3 mt-3 border-t border-slate-200 dark:border-slate-800 space-y-1.5">
+                <p className="px-3 text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+                  👑 Admin Controls
+                </p>
+                {adminNavItems.map((item) => {
+                  const isActive = pathname?.startsWith(item.href);
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={`flex items-center justify-between rounded-xl px-4 py-3 text-sm font-medium transition ${
+                        isActive
+                          ? "bg-amber-50 text-amber-950 dark:bg-amber-950/50 dark:text-amber-300 font-semibold"
+                          : "text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-900"
+                      }`}
+                    >
+                      <div className="flex items-center space-x-3">
+                        {item.icon(isActive || false)}
+                        <span>{item.label}</span>
+                      </div>
+                      <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700 dark:bg-amber-900/60 dark:text-amber-300">
+                        {item.badge}
+                      </span>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-800 space-y-2">
@@ -408,6 +567,20 @@ export default function DashboardLayout({
       {/* MAIN CONTENT AREA                                              */}
       {/* ============================================================== */}
       <main className="md:ml-64 min-h-screen">
+        {/* Desktop Sticky Header with Visible Theme Switcher */}
+        <header className="hidden md:flex sticky top-0 z-30 h-14 items-center justify-between border-b border-slate-200/80 bg-white/80 px-6 backdrop-blur-md dark:border-slate-800/80 dark:bg-[#070b12]/80">
+          <div className="flex items-center space-x-2 text-xs text-slate-500 dark:text-slate-400">
+            <span className="font-semibold text-slate-900 dark:text-white">Digital Heroes Member Portal</span>
+            <span>•</span>
+            <span className="capitalize">{pathname?.split("/").filter(Boolean).slice(-1)[0] || "Dashboard"}</span>
+          </div>
+
+          <div className="flex items-center space-x-2.5">
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Theme:</span>
+            <ThemeToggle variant="labeled" />
+          </div>
+        </header>
+
         <div className="p-4 sm:p-6 lg:p-8">{children}</div>
       </main>
     </div>

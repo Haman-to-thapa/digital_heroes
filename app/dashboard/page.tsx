@@ -9,7 +9,7 @@ type Profile = {
   full_name: string | null;
   role: string;
   charity_id: string | null;
-  charity_percentage: number;
+  charity_percentage?: number;
 };
 
 type Charity = {
@@ -50,12 +50,16 @@ export default function DashboardPage() {
       // 1. Fetch profile with charity info
       const { data: profileData } = await supabase
         .from("profiles")
-        .select("full_name, role, charity_id, charity_percentage")
+        .select("full_name, role, charity_id")
         .eq("id", user.id)
         .single();
 
       if (profileData) {
-        setProfile(profileData);
+        const savedPercentage = Number(user.user_metadata?.charity_percentage) || 10;
+        setProfile({
+          ...profileData,
+          charity_percentage: savedPercentage,
+        });
 
         // Fetch selected charity details
         if (profileData.charity_id) {
@@ -166,41 +170,77 @@ export default function DashboardPage() {
 
         {/* Stats Grid - 5 Cards */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-          {/* Card 1: Subscription (LIVE FROM SUPABASE) */}
+          {/* Card 1: Subscription / Role (LIVE FROM SUPABASE) */}
           <div className="rounded-2xl border border-gray-200/80 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
             <div className="flex items-center justify-between">
               <p className="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                Subscription
+                {profile?.role === "admin" ? "Access Level" : "Subscription"}
               </p>
-              {isActive && (
+              {(isActive || profile?.role === "admin") && (
                 <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
               )}
             </div>
 
             <h2
               className={`mt-2 text-xl font-bold capitalize ${
-                isActive
+                profile?.role === "admin" || isActive
                   ? "text-emerald-600 dark:text-emerald-400"
                   : "text-gray-900 dark:text-white"
               }`}
             >
-              {subscription?.status || "Inactive"}
+              {profile?.role === "admin" ? "Admin VIP Access 👑" : isActive ? `${subscription?.plan_type || "Active"} Member` : (subscription?.status || "Inactive")}
             </h2>
 
-            {subscription?.plan_type ? (
-              <p className="mt-1 text-xs font-medium capitalize text-gray-600 dark:text-gray-300">
-                {subscription.plan_type} plan
-              </p>
+            {profile?.role === "admin" ? (
+              <div className="mt-1 space-y-1">
+                <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-300">
+                  Full Platform Access
+                </p>
+                <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                  All draws & features unlocked (no subscription required)
+                </p>
+              </div>
+            ) : subscription?.plan_type ? (
+              <div className="mt-1 space-y-1">
+                <p className="text-xs font-medium capitalize text-gray-600 dark:text-gray-300">
+                  {subscription.plan_type === "yearly" ? "Annual (12 Months)" : "Monthly (30 Days)"}
+                </p>
+                {subscription.current_period_end && (
+                  <p className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+                    {Math.max(
+                      0,
+                      Math.ceil(
+                        (new Date(subscription.current_period_end).getTime() - Date.now()) /
+                          (1000 * 60 * 60 * 24)
+                      )
+                    )}{" "}
+                    days remaining
+                  </p>
+                )}
+              </div>
             ) : (
               <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">
                 Pick a plan to enter draws
               </p>
             )}
 
-            {subscription?.current_period_end ? (
-              <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                Renewal:{" "}
-                {new Date(subscription.current_period_end).toLocaleDateString()}
+            {profile?.role === "admin" ? (
+              <Link
+                href="/admin/draw"
+                className="mt-2 inline-block text-xs font-semibold text-emerald-600 hover:underline dark:text-emerald-400 border-t border-gray-100 dark:border-gray-800/80 pt-2 w-full"
+              >
+                Go to Admin Draw Panel &rarr;
+              </Link>
+            ) : subscription?.current_period_end ? (
+              <p className="mt-2 text-xs font-medium text-gray-500 dark:text-gray-400 border-t border-gray-100 dark:border-gray-800/80 pt-2">
+                End Date:{" "}
+                <span className="text-gray-700 dark:text-gray-200 font-semibold">
+                  {new Date(subscription.current_period_end).toLocaleDateString("en-GB", {
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric",
+                  })}
+                </span>
               </p>
             ) : (
               <Link
@@ -224,13 +264,13 @@ export default function DashboardPage() {
               {charity?.name || "Not selected"}
             </h2>
             <p className="mt-1 text-xs text-emerald-600 dark:text-emerald-400">
-              Contribution: {profile?.charity_percentage || 10}%
+              Cause Supported 🎗️
             </p>
             <Link
               href="/dashboard/charity"
               className="mt-2 inline-block text-xs font-medium text-emerald-600 hover:underline dark:text-emerald-400"
             >
-              Change &rarr;
+              {charity ? "Change Charity & %" : "Choose Charity & %"} &rarr;
             </Link>
           </div>
 

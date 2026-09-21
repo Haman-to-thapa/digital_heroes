@@ -30,6 +30,25 @@ export async function POST(request: Request) {
       );
     }
 
+    // Check if user already has an active subscription
+    const { data: existingSubscription } = await supabase
+      .from("subscriptions")
+      .select("id, status, plan_type, current_period_end")
+      .eq("user_id", user.id)
+      .eq("status", "active")
+      .maybeSingle();
+
+    if (existingSubscription) {
+      return NextResponse.json(
+        {
+          error: `You already have an active ${existingSubscription.plan_type} subscription valid until ${new Date(
+            existingSubscription.current_period_end || Date.now()
+          ).toLocaleDateString()}. Checkout is disabled.`,
+        },
+        { status: 400 }
+      );
+    }
+
     const priceId =
       plan === "monthly"
         ? process.env.STRIPE_MONTHLY_PRICE_ID
