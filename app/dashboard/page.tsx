@@ -116,49 +116,7 @@ export default function DashboardPage() {
   const isActive = subscription?.status === "active";
 
   return (
-    <main className="min-h-full p-4 sm:p-6 lg:p-8">
-      {/* 45.3 Dashboard Navigation Bar */}
-      <div className="mx-auto mb-6 max-w-6xl">
-        <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-gray-200/80 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-          <div className="flex flex-wrap items-center gap-2">
-            <Link
-              href="/dashboard"
-              className="rounded-xl bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400"
-            >
-              Dashboard
-            </Link>
-
-            <Link
-              href="/dashboard/scores"
-              className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
-            >
-              Scores
-            </Link>
-
-            <Link
-              href="/dashboard/charity"
-              className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
-            >
-              Charity
-            </Link>
-
-            <Link
-              href="/dashboard/subscription"
-              className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
-            >
-              Subscription
-            </Link>
-          </div>
-
-          <button
-            onClick={handleLogout}
-            className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-red-500 cursor-pointer"
-          >
-            Logout
-          </button>
-        </div>
-      </div>
-
+    <main className="min-h-full">
       <div className="mx-auto max-w-6xl space-y-6">
         {/* Profile Header Card */}
         <div className="rounded-2xl border border-gray-200/80 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900 sm:p-8">
