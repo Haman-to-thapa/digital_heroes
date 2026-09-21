@@ -6,7 +6,6 @@ export async function POST() {
   try {
     const supabase = await createClient();
 
-    // Check logged-in user
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -18,7 +17,6 @@ export async function POST() {
       );
     }
 
-    // Check admin
     const { data: profile } = await supabase
       .from("profiles")
       .select("role")
@@ -32,7 +30,6 @@ export async function POST() {
       );
     }
 
-    // Current month
     const now = new Date();
 
     const drawMonth = new Date(
@@ -45,7 +42,6 @@ export async function POST() {
       .toISOString()
       .split("T")[0];
 
-    // Get published draw
     const { data: draw, error: drawError } =
       await supabaseAdmin
         .from("draws")
@@ -53,38 +49,40 @@ export async function POST() {
         .eq("draw_month", drawMonth)
         .maybeSingle();
 
-    if (drawError) {
+    if (drawError || !draw) {
       return NextResponse.json(
-        { error: drawError.message },
-        { status: 500 }
-      );
-    }
-
-    if (!draw) {
-      return NextResponse.json(
-        { error: "Current draw not found" },
+        { error: "Draw not found." },
         { status: 404 }
       );
     }
 
     if (draw.status !== "published") {
       return NextResponse.json(
-        { error: "Draw must be published first" },
+        { error: "Draw must be published first." },
         { status: 400 }
+      );
+    }
+
+    const { data: existingWinners } =
+      await supabaseAdmin
+        .from("winners")
+        .select("id")
+        .eq("draw_id", draw.id)
+        .limit(1);
+
+    if (existingWinners?.length) {
+      return NextResponse.json(
+        {
+          error:
+            "Results have already been calculated for this draw.",
+        },
+        { status: 409 }
       );
     }
 
     const winningNumbers: number[] =
       draw.winning_numbers || [];
 
-    if (winningNumbers.length !== 5) {
-      return NextResponse.json(
-        { error: "Winning numbers are invalid" },
-        { status: 400 }
-      );
-    }
-
-    // Get all entries
     const { data: entries, error: entriesError } =
       await supabaseAdmin
         .from("draw_entries")
@@ -98,18 +96,17 @@ export async function POST() {
       );
     }
 
-    if (!entries || entries.length === 0) {
-      return NextResponse.json({
-        message: "No entries entered by golfers for this draw yet.",
-        totalEntries: 0,
-        totalWinners: 0,
-      });
+    if (!entries?.length) {
+      return NextResponse.json(
+        { error: "No draw entries found." },
+        { status: 400 }
+      );
     }
 
     const winners = [];
 
     for (const entry of entries) {
-      const entryNumbers = [
+      const numbers = [
         entry.number_1,
         entry.number_2,
         entry.number_3,
@@ -117,25 +114,17 @@ export async function POST() {
         entry.number_5,
       ];
 
-      const matches = entryNumbers.filter((number) =>
+      const matches = numbers.filter((number) =>
         winningNumbers.includes(number)
       ).length;
 
-      // Update match count
-      const { error: updateError } =
-        await supabaseAdmin
-          .from("draw_entries")
-          .update({
-            matches_count: matches,
-          })
-          .eq("id", entry.id);
+      await supabaseAdmin
+        .from("draw_entries")
+        .update({
+          matches_count: matches,
+        })
+        .eq("id", entry.id);
 
-      if (updateError) {
-        console.error("Error updating entry matches count:", updateError);
-        continue;
-      }
-
-      // Only 3, 4 and 5 match are winners
       if (matches >= 3) {
         winners.push({
           draw_id: draw.id,
@@ -154,10 +143,6 @@ export async function POST() {
       }
     }
 
-    // Clear any previous winner records for this draw if re-calculating
-    await supabaseAdmin.from("winners").delete().eq("draw_id", draw.id);
-
-    // Create winner records
     if (winners.length > 0) {
       const { error: winnerError } =
         await supabaseAdmin
@@ -172,16 +157,34 @@ export async function POST() {
       }
     }
 
+    const fiveMatchWinnerCount =
+      winners.filter(
+        (winner) => winner.match_type === "5_match"
+      ).length;
+
+    const newRollover =
+      fiveMatchWinnerCount === 0
+        ? Number(draw.five_match_pool || 0)
+        : 0;
+
+    await supabaseAdmin
+      .from("draws")
+      .update({
+        jackpot_rollover: newRollover,
+      })
+      .eq("id", draw.id);
+
     return NextResponse.json({
       message: "Draw results calculated successfully.",
       totalEntries: entries.length,
       totalWinners: winners.length,
+      jackpotRollover: newRollover,
     });
   } catch (error) {
-    console.error("Calculate draw error:", error);
+    console.error(error);
 
     return NextResponse.json(
-      { error: "Unable to calculate draw results" },
+      { error: "Unable to calculate results." },
       { status: 500 }
     );
   }

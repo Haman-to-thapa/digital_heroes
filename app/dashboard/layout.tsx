@@ -27,18 +27,23 @@ export default function DashboardLayout({
   const [profile, setProfile] = useState<{ full_name: string | null; role: string } | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadUser() {
-      const { data } = await supabase.auth.getUser();
-      setUser(data.user);
-      if (data.user) {
-        const { data: prof } = await supabase
-          .from("profiles")
-          .select("full_name, role")
-          .eq("id", data.user.id)
-          .single();
-        if (prof) setProfile(prof);
+      try {
+        const { data } = await supabase.auth.getUser();
+        setUser(data.user);
+        if (data.user) {
+          const { data: prof } = await supabase
+            .from("profiles")
+            .select("full_name, role")
+            .eq("id", data.user.id)
+            .single();
+          if (prof) setProfile(prof);
+        }
+      } finally {
+        setLoading(false);
       }
     }
 
@@ -336,6 +341,69 @@ export default function DashboardLayout({
   ];
 
   const currentDisplayNavItems = profile?.role === "admin" ? adminPrimaryNavItems : navItems;
+  const isAdmin = profile?.role === "admin";
+
+  // Show skeleton while loading user/profile
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-[#070b12] flex">
+        {/* Sidebar skeleton */}
+        <aside className="fixed left-0 top-0 z-40 hidden h-screen w-64 flex-col justify-between border-r border-slate-200/60 bg-white/95 p-5 md:flex dark:border-slate-800/60 dark:bg-[#0b101b]/95">
+          <div className="space-y-6 animate-pulse">
+            <div className="flex items-center space-x-3">
+              <div className="h-9 w-9 rounded-xl bg-slate-200 dark:bg-slate-800" />
+              <div className="space-y-1.5">
+                <div className="h-3.5 w-28 rounded bg-slate-200 dark:bg-slate-800" />
+                <div className="h-2 w-20 rounded bg-emerald-200/60 dark:bg-emerald-900/30" />
+              </div>
+            </div>
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="flex items-center justify-between rounded-xl px-3.5 py-2.5">
+                <div className="flex items-center space-x-3">
+                  <div className="h-5 w-5 rounded-lg bg-slate-200 dark:bg-slate-800" />
+                  <div className="h-3 rounded bg-slate-200 dark:bg-slate-800" style={{ width: `${70 + i * 8}px` }} />
+                </div>
+                <div className="h-4 w-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30" />
+              </div>
+            ))}
+          </div>
+          <div className="space-y-3 pt-4 border-t border-slate-200/60 dark:border-slate-800/60 animate-pulse">
+            <div className="flex items-center space-x-2.5 px-1">
+              <div className="h-8 w-8 rounded-full bg-slate-200 dark:bg-slate-800" />
+              <div className="space-y-1">
+                <div className="h-3 w-24 rounded bg-slate-200 dark:bg-slate-800" />
+                <div className="h-2 w-32 rounded bg-slate-100 dark:bg-slate-900" />
+              </div>
+            </div>
+            <div className="h-12 rounded-xl bg-slate-100 dark:bg-slate-900" />
+            <div className="h-8 rounded-xl bg-slate-100 dark:bg-slate-900" />
+            <div className="h-8 rounded-xl bg-red-50 dark:bg-red-950/20" />
+          </div>
+        </aside>
+        {/* Content skeleton */}
+        <main className="md:ml-64 flex-1 min-h-screen">
+          <div className="h-14 border-b border-slate-200/60 bg-white/80 dark:border-slate-800/60 dark:bg-[#070b12]/80 flex items-center px-6 gap-3 animate-pulse">
+            <div className="h-3 w-48 rounded bg-slate-200 dark:bg-slate-800" />
+            <div className="h-3 w-1 rounded bg-slate-200 dark:bg-slate-800" />
+            <div className="h-3 w-24 rounded bg-slate-200 dark:bg-slate-800" />
+          </div>
+          <div className="p-8 space-y-6 animate-pulse">
+            <div className="space-y-2">
+              <div className="h-4 w-40 rounded bg-slate-200 dark:bg-slate-800" />
+              <div className="h-8 w-72 rounded-xl bg-slate-200 dark:bg-slate-800" />
+              <div className="h-3 w-96 rounded bg-slate-100 dark:bg-slate-900" />
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="h-28 rounded-3xl bg-white dark:bg-[#0b101b] border border-slate-200/80 dark:border-slate-800/80" />
+              ))}
+            </div>
+            <div className="h-48 rounded-3xl bg-white dark:bg-[#0b101b] border border-slate-200/80 dark:border-slate-800/80" />
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 transition-colors dark:bg-[#070b12] dark:text-slate-100">

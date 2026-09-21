@@ -23,6 +23,20 @@ export default function ScoresPage() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [userRole, setUserRole] = useState("user");
+  const [userId, setUserId] = useState<string | null>(null);
+
+  // Fetch scores without resetting the full loading state (avoids page re-render)
+  async function refreshScores(uid: string) {
+    const { data, error } = await supabase
+      .from("scores")
+      .select("id, score, score_date")
+      .eq("user_id", uid)
+      .order("score_date", { ascending: false });
+
+    if (!error) {
+      setScores(data || []);
+    }
+  }
 
   async function fetchScores() {
     const {
@@ -33,6 +47,8 @@ export default function ScoresPage() {
       router.push("/login");
       return;
     }
+
+    setUserId(user.id);
 
     const { data: profileData } = await supabase
       .from("profiles")
@@ -87,14 +103,15 @@ export default function ScoresPage() {
       data: { user },
     } = await supabase.auth.getUser();
 
-    if (!user) {
+    const uid = userId || user?.id;
+    if (!uid) {
       router.push("/login");
       return;
     }
 
     // Insert score
     const { error } = await supabase.from("scores").insert({
-      user_id: user.id,
+      user_id: uid,
       score: numericScore,
       score_date: scoreDate,
     });
@@ -113,7 +130,7 @@ export default function ScoresPage() {
     const { data: updatedScores, error: fetchError } = await supabase
       .from("scores")
       .select("id, score, score_date")
-      .eq("user_id", user.id)
+      .eq("user_id", uid)
       .order("score_date", { ascending: false });
 
     if (fetchError) {
@@ -125,21 +142,20 @@ export default function ScoresPage() {
     // PRD: Retain latest 5 only, delete older ones
     if (updatedScores && updatedScores.length > 5) {
       const scoresToDelete = updatedScores.slice(5);
-
       for (const oldScore of scoresToDelete) {
         await supabase
           .from("scores")
           .delete()
           .eq("id", oldScore.id)
-          .eq("user_id", user.id);
+          .eq("user_id", uid);
       }
     }
 
     setScore("");
     setScoreDate("");
     setMessage("Score added successfully.");
-
-    await fetchScores();
+    // Refresh only the scores list — no full page reload
+    await refreshScores(uid);
     setSaving(false);
   }
 
@@ -167,7 +183,8 @@ export default function ScoresPage() {
       data: { user },
     } = await supabase.auth.getUser();
 
-    if (!user) {
+    const uid = userId || user?.id;
+    if (!uid) {
       router.push("/login");
       return;
     }
@@ -180,7 +197,7 @@ export default function ScoresPage() {
         updated_at: new Date().toISOString(),
       })
       .eq("id", editingId)
-      .eq("user_id", user.id);
+      .eq("user_id", uid);
 
     if (error) {
       if (error.code === "23505") {
@@ -196,8 +213,8 @@ export default function ScoresPage() {
     setScore("");
     setScoreDate("");
     setMessage("Score updated successfully.");
-
-    await fetchScores();
+    // Refresh only the scores list — no full page reload
+    await refreshScores(uid);
     setSaving(false);
   }
 
@@ -224,7 +241,8 @@ export default function ScoresPage() {
       data: { user },
     } = await supabase.auth.getUser();
 
-    if (!user) {
+    const uid = userId || user?.id;
+    if (!uid) {
       router.push("/login");
       return;
     }
@@ -233,7 +251,7 @@ export default function ScoresPage() {
       .from("scores")
       .delete()
       .eq("id", id)
-      .eq("user_id", user.id);
+      .eq("user_id", uid);
 
     if (error) {
       setMessage(error.message);
@@ -245,7 +263,7 @@ export default function ScoresPage() {
     }
 
     setMessage("Score deleted successfully.");
-    await fetchScores();
+    await refreshScores(uid);
   }
 
   if (loading) {

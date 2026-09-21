@@ -2,22 +2,62 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
-function generateUniqueNumbers(count: number) {
+function randomNumbers() {
   const numbers = new Set<number>();
 
-  while (numbers.size < count) {
-    const number = Math.floor(Math.random() * 45) + 1;
-    numbers.add(number);
+  while (numbers.size < 5) {
+    numbers.add(Math.floor(Math.random() * 45) + 1);
   }
 
   return Array.from(numbers).sort((a, b) => a - b);
 }
 
-export async function POST() {
+function weightedNumbers(scores: number[]) {
+  const frequency = new Map<number, number>();
+
+  for (let number = 1; number <= 45; number++) {
+    frequency.set(number, 1);
+  }
+
+  for (const score of scores) {
+    frequency.set(
+      score,
+      (frequency.get(score) || 1) + 1
+    );
+  }
+
+  const selected = new Set<number>();
+
+  while (selected.size < 5) {
+    let totalWeight = 0;
+
+    for (const [number, weight] of frequency) {
+      if (!selected.has(number)) {
+        totalWeight += weight;
+      }
+    }
+
+    let random = Math.random() * totalWeight;
+
+    for (const [number, weight] of frequency) {
+      if (selected.has(number)) continue;
+
+      random -= weight;
+
+      if (random <= 0) {
+        selected.add(number);
+        break;
+      }
+    }
+  }
+
+  return Array.from(selected).sort((a, b) => a - b);
+}
+
+export async function POST(request: Request) {
   try {
     const supabase = await createClient();
 
-    // Check logged-in user
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -29,87 +69,125 @@ export async function POST() {
       );
     }
 
-    // Check admin role
-    const { data: profile, error: profileError } =
-      await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", user.id)
-        .single();
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
 
-    if (profileError || profile?.role !== "admin") {
+    if (profile?.role !== "admin") {
       return NextResponse.json(
         { error: "Admin access required" },
         { status: 403 }
       );
     }
 
-    // Current month
+    const body = await request.json().catch(() => ({}));
+
+    const requestedType =
+      body.draw_type === "algorithmic"
+        ? "algorithmic"
+        : "random";
+
     const now = new Date();
 
     const drawMonth = new Date(
-      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)
+      Date.UTC(
+        now.getUTCFullYear(),
+        now.getUTCMonth(),
+        1
+      )
     )
       .toISOString()
       .split("T")[0];
 
-    // Find current draw
-    const { data: draw, error: drawError } =
+    let { data: draw, error } =
       await supabaseAdmin
         .from("draws")
-        .select("id, draw_type, status")
+        .select("*")
         .eq("draw_month", drawMonth)
         .maybeSingle();
 
-    if (drawError) {
+    if (error) {
       return NextResponse.json(
-        { error: drawError.message },
+        { error: error.message },
         { status: 500 }
       );
     }
 
-    let currentDraw = draw;
-    if (!currentDraw) {
+    // Auto-create draw draft if not found for current month
+    if (!draw) {
       const { data: newDraw, error: createError } = await supabaseAdmin
         .from("draws")
         .insert({
           draw_month: drawMonth,
-          draw_type: "random",
+          draw_type: requestedType,
           status: "draft",
           total_prize_pool: 0,
         })
-        .select("id, draw_type, status")
+        .select()
         .single();
 
       if (createError) {
         return NextResponse.json(
-          { error: createError.message },
-          { status: 500 }
+          { error: "Current draw not found and could not be initialized." },
+          { status: 404 }
         );
       }
-      currentDraw = newDraw;
+      draw = newDraw;
     }
 
-    if (currentDraw.status === "published") {
+    if (draw.status === "published") {
       return NextResponse.json(
-        { error: "Published draw cannot be simulated again" },
+        { error: "Published draw cannot be simulated." },
         { status: 400 }
       );
     }
 
-    // Generate 5 unique winning numbers
-    const winningNumbers = generateUniqueNumbers(5);
+    let winningNumbers: number[];
 
-    // Save simulation result
+    if (requestedType === "algorithmic") {
+      const { data: activeSubscriptions } =
+        await supabaseAdmin
+          .from("subscriptions")
+          .select("user_id")
+          .eq("status", "active");
+
+      const userIds = [
+        ...new Set(
+          (activeSubscriptions || []).map(
+            (item) => item.user_id
+          )
+        ),
+      ];
+
+      let scoreValues: number[] = [];
+
+      if (userIds.length > 0) {
+        const { data: scoreRows } =
+          await supabaseAdmin
+            .from("scores")
+            .select("score")
+            .in("user_id", userIds);
+
+        scoreValues =
+          scoreRows?.map((item) => item.score) || [];
+      }
+
+      winningNumbers = weightedNumbers(scoreValues);
+    } else {
+      winningNumbers = randomNumbers();
+    }
+
     const { data: updatedDraw, error: updateError } =
       await supabaseAdmin
         .from("draws")
         .update({
-          draw_type: currentDraw.draw_type || "random",
+          draw_type: requestedType,
           status: "simulated",
           winning_numbers: winningNumbers,
         })
-        .eq("id", currentDraw.id)
+        .eq("id", draw.id)
         .select()
         .single();
 
@@ -121,14 +199,14 @@ export async function POST() {
     }
 
     return NextResponse.json({
-      message: "Draw simulated successfully",
+      message: "Draw simulated successfully.",
       draw: updatedDraw,
     });
   } catch (error) {
-    console.error("Draw simulation error:", error);
+    console.error(error);
 
     return NextResponse.json(
-      { error: "Unable to simulate draw" },
+      { error: "Unable to simulate draw." },
       { status: 500 }
     );
   }

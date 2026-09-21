@@ -41,6 +41,8 @@ export default function DashboardPage() {
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [scoreCount, setScoreCount] = useState(0);
   const [latestScore, setLatestScore] = useState<number | null>(null);
+  const [drawCount, setDrawCount] = useState(0);
+  const [winningsTotal, setWinningsTotal] = useState(0);
   const [userEmail, setUserEmail] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -120,6 +122,31 @@ export default function DashboardPage() {
 
       setScoreCount(scoreData?.length || 0);
       setLatestScore(scoreData?.[0]?.score ?? null);
+
+      // 3b. Fetch draw entries & user total winnings
+      const { count: entryCount } = await supabase
+        .from("draw_entries")
+        .select("*", {
+          count: "exact",
+          head: true,
+        })
+        .eq("user_id", user.id);
+
+      setDrawCount(entryCount || 0);
+
+      const { data: winningsData } = await supabase
+        .from("winners")
+        .select("prize_amount")
+        .eq("user_id", user.id);
+
+      const totalWinnings =
+        winningsData?.reduce(
+          (sum, item) =>
+            sum + Number(item.prize_amount || 0),
+          0
+        ) || 0;
+
+      setWinningsTotal(totalWinnings);
 
       // 4. If Admin, fetch live platform operations data
       if (userRole === "admin") {
@@ -722,13 +749,13 @@ export default function DashboardPage() {
           {/* Card 4: Draws */}
           <div className="rounded-2xl border border-gray-200/80 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
             <p className="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-              Draws
+              Draws Entered
             </p>
             <h2 className="mt-2 text-xl font-bold text-gray-900 dark:text-white">
-              {scoreCount === 5 ? "Eligible" : "Needs 5 Scores"}
+              {drawCount}
             </h2>
             <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              Monthly sweepstakes
+              {scoreCount === 5 ? "Eligible for next draw ✅" : "Needs 5 Scores"}
             </p>
             <Link
               href="/dashboard/draw"
@@ -744,10 +771,10 @@ export default function DashboardPage() {
               Total Winnings
             </p>
             <h2 className="mt-2 text-xl font-bold text-gray-900 dark:text-white">
-              ₹0
+              ₹{winningsTotal.toFixed(2)}
             </h2>
             <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              Verified payouts
+              {winningsTotal > 0 ? "Verified payouts" : "Participate to win"}
             </p>
             <Link
               href="/dashboard/winnings"

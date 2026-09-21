@@ -36,20 +36,22 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  // Authenticate user session safely via Supabase Auth
-  const { data: { user } } = await supabase.auth.getUser();
-  const { data: claimsData } = await supabase.auth.getClaims();
-  const isAuthenticated = !!user || !!claimsData?.claims;
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   const pathname = request.nextUrl.pathname;
 
-  // Protect /dashboard and checkout creation; exclude stripe webhook which is invoked by Stripe servers
   const isProtected =
     pathname.startsWith("/dashboard") ||
-    pathname.startsWith("/admin") ||
-    (pathname.startsWith("/api/stripe") && !pathname.startsWith("/api/stripe/webhook"));
+    (pathname.startsWith("/api/stripe") && !pathname.startsWith("/api/stripe/webhook")) ||
+    pathname.startsWith("/api/winner-proof");
 
-  if (isProtected && !isAuthenticated) {
+  const isAdmin =
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/api/admin");
+
+  if (isProtected && !user) {
     if (pathname.startsWith("/api/")) {
       return NextResponse.json(
         { error: "Unauthorized" },
@@ -57,9 +59,43 @@ export async function updateSession(request: NextRequest) {
       );
     }
 
-    const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = "/login";
-    return NextResponse.redirect(redirectUrl);
+    return NextResponse.redirect(
+      new URL("/login", request.url)
+    );
+  }
+
+  if (isAdmin) {
+    if (!user) {
+      if (pathname.startsWith("/api/")) {
+        return NextResponse.json(
+          { error: "Unauthorized" },
+          { status: 401 }
+        );
+      }
+
+      return NextResponse.redirect(
+        new URL("/login", request.url)
+      );
+    }
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+
+    if (profile?.role !== "admin") {
+      if (pathname.startsWith("/api/")) {
+        return NextResponse.json(
+          { error: "Admin access required" },
+          { status: 403 }
+        );
+      }
+
+      return NextResponse.redirect(
+        new URL("/dashboard", request.url)
+      );
+    }
   }
 
   return response;

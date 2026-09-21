@@ -93,6 +93,17 @@ export function Navbar() {
             Charities
           </Link>
 
+          <Link
+            href="/draws"
+            className={`rounded-xl px-3.5 py-1.5 text-sm font-medium transition ${
+              pathname === "/draws"
+                ? "bg-slate-100 text-slate-950 dark:bg-slate-800 dark:text-white"
+                : "text-slate-600 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white"
+            }`}
+          >
+            Draw Results
+          </Link>
+
           {user ? (
             <div className="flex items-center space-x-2.5 pl-2 border-l border-slate-200 dark:border-slate-800">
               {/* User Avatar Chip */}
@@ -194,6 +205,18 @@ export function Navbar() {
               }`}
             >
               Charity Directory
+            </Link>
+
+            <Link
+              href="/draws"
+              onClick={() => setMobileMenuOpen(false)}
+              className={`rounded-xl px-3.5 py-2.5 text-sm font-medium transition ${
+                pathname === "/draws"
+                  ? "bg-slate-100 text-slate-950 dark:bg-slate-800 dark:text-white"
+                  : "text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-900"
+              }`}
+            >
+              Draw Results
             </Link>
 
             {user ? (

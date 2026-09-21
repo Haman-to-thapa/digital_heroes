@@ -18,6 +18,8 @@ export default function SubscriptionPage() {
 
   const [selectedPlan, setSelectedPlan] = useState<Plan>("monthly");
   const [loading, setLoading] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelMessage, setCancelMessage] = useState<string | null>(null);
   const [initialLoading, setInitialLoading] = useState(true);
   const [subscription, setSubscription] = useState<SubscriptionRecord | null>(null);
   const [userRole, setUserRole] = useState<string>("user");
@@ -130,10 +132,38 @@ export default function SubscriptionPage() {
         alert("Payment URL was not received.");
         setLoading(false);
       }
-    } catch (error) {
-      console.error(error);
-      alert("Unable to start payment session.");
+    } catch (err: any) {
+      alert(err.message || "Failed to initiate payment");
       setLoading(false);
+    }
+  }
+
+  async function cancelSubscription() {
+    const confirmed = window.confirm(
+      "Are you sure you want to cancel your subscription at the end of the current billing cycle?"
+    );
+    if (!confirmed) return;
+
+    setCancelling(true);
+    setCancelMessage(null);
+    try {
+      const response = await fetch("/api/stripe/cancel-subscription", {
+        method: "POST",
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(data.error || "Unable to cancel subscription.");
+        return;
+      }
+
+      setCancelMessage(data.message || "Subscription cancellation scheduled.");
+      alert(data.message || "Subscription cancellation scheduled.");
+    } catch {
+      alert("Something went wrong cancelling subscription.");
+    } finally {
+      setCancelling(false);
     }
   }
 
@@ -309,6 +339,26 @@ export default function SubscriptionPage() {
                 <strong className="text-slate-950 dark:text-white">Sweepstakes Ready:</strong> You are fully qualified to submit your 5 Stableford scores for the monthly jackpot draw. Your charity of choice also receives proceeds from this cycle.
               </p>
             </div>
+
+            {/* Cancel Subscription Button & Notice */}
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-emerald-200/60 pt-4 dark:border-emerald-900/40">
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Need to pause or end your subscription? Your access will continue until the renewal date.
+              </p>
+              <button
+                type="button"
+                onClick={cancelSubscription}
+                disabled={cancelling}
+                className="rounded-xl border border-rose-200 bg-white px-4 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 hover:border-rose-300 dark:border-rose-900 dark:bg-slate-900 dark:text-rose-400 dark:hover:bg-rose-950/40 disabled:opacity-50 cursor-pointer transition"
+              >
+                {cancelling ? "Scheduling Cancellation…" : "Cancel at Period End"}
+              </button>
+            </div>
+            {cancelMessage && (
+              <p className="mt-2 text-xs font-semibold text-amber-600 dark:text-amber-400">
+                {cancelMessage}
+              </p>
+            )}
           </div>
         )}
 

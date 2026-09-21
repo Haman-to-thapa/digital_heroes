@@ -22,6 +22,8 @@ export default function CharityPage() {
   const [percentage, setPercentage] = useState(10);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [donationAmount, setDonationAmount] = useState("500");
+  const [donating, setDonating] = useState(false);
   const [message, setMessage] = useState("");
   const [userRole, setUserRole] = useState("user");
 
@@ -387,6 +389,70 @@ export default function CharityPage() {
               {message}
             </div>
           )}
+
+          {/* Make an Independent Donation Section */}
+          <div className="mt-10 rounded-2xl border border-rose-200/80 bg-rose-50/40 p-6 dark:border-rose-900/40 dark:bg-rose-950/20">
+            <div className="flex items-center gap-2">
+              <span className="text-xl">❤️</span>
+              <h2 className="text-lg font-black text-slate-900 dark:text-white">
+                Make an Independent Donation
+              </h2>
+            </div>
+            <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
+              Want to support {selectedCharityObj?.name || "your charity"} beyond monthly subscription allocations? Send a direct voluntary contribution anytime.
+            </p>
+
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              <div className="relative">
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 font-bold text-slate-500">
+                  ₹
+                </span>
+                <input
+                  type="number"
+                  min="1"
+                  value={donationAmount}
+                  onChange={(e) => setDonationAmount(e.target.value)}
+                  placeholder="500"
+                  className="w-40 rounded-xl border border-slate-300 bg-white py-2.5 pl-8 pr-4 font-bold text-slate-900 shadow-xs outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+                />
+              </div>
+
+              <button
+                type="button"
+                onClick={async () => {
+                  if (!selectedCharity) {
+                    alert("Please select a charity first from the cards above.");
+                    return;
+                  }
+                  setDonating(true);
+                  try {
+                    const response = await fetch("/api/stripe/create-donation-session", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        charity_id: selectedCharity,
+                        amount: Number(donationAmount),
+                      }),
+                    });
+                    const data = await response.json();
+                    if (!response.ok) {
+                      alert(data.error || "Unable to start donation.");
+                      setDonating(false);
+                      return;
+                    }
+                    window.location.href = data.url;
+                  } catch {
+                    alert("Something went wrong initiating donation.");
+                    setDonating(false);
+                  }
+                }}
+                disabled={donating || !donationAmount || Number(donationAmount) < 1}
+                className="rounded-xl bg-slate-950 px-6 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-slate-800 disabled:opacity-50 cursor-pointer dark:bg-rose-600 dark:hover:bg-rose-500 transition"
+              >
+                {donating ? "Processing…" : `Donate ₹${donationAmount || 0} Directly`}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </main>

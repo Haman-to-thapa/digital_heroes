@@ -36,7 +36,36 @@ export async function POST(request: Request) {
   try {
     if (event.type === "checkout.session.completed") {
       const session = event.data.object as Stripe.Checkout.Session;
+      const metadata = session.metadata;
 
+      // 1. Independent donation checkout
+      if (metadata?.type === "donation") {
+        const donationRecord: any = {
+          user_id: metadata.user_id,
+          charity_id: metadata.charity_id,
+          amount: Number(metadata.amount),
+          percentage: 0,
+          source: "independent",
+        };
+
+        const { error: donErr } = await supabaseAdmin
+          .from("donations")
+          .insert({
+            ...donationRecord,
+            stripe_checkout_session_id: session.id,
+          });
+
+        if (donErr) {
+          // Safe fallback if stripe_checkout_session_id column not yet migrated
+          await supabaseAdmin.from("donations").insert(donationRecord);
+        }
+
+        return NextResponse.json({
+          received: true,
+        });
+      }
+
+      // 2. Subscription checkout
       const userId = session.metadata?.user_id;
       const plan = session.metadata?.plan;
 
@@ -93,11 +122,31 @@ export async function POST(request: Request) {
 
       if (error) {
         console.error("Subscription DB error:", error);
-
         return NextResponse.json(
           { error: "Database update failed" },
           { status: 500 }
         );
+      }
+
+      // Record subscription charity donation contribution
+      const { data: profile } = await supabaseAdmin
+        .from("profiles")
+        .select("charity_id")
+        .eq("id", userId)
+        .single();
+
+      if (profile?.charity_id) {
+        const userPercentage = Number(session.metadata?.charity_percentage || 10);
+        const planAmount = plan === "yearly" ? 4990 : 499;
+        const donationAmount = Math.round((planAmount * userPercentage) / 100);
+
+        await supabaseAdmin.from("donations").insert({
+          user_id: userId,
+          charity_id: profile.charity_id,
+          amount: donationAmount,
+          percentage: userPercentage,
+          source: "subscription",
+        });
       }
     }
 
