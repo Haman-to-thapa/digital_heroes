@@ -8,6 +8,12 @@ import Link from "next/link";
 type Profile = {
   full_name: string | null;
   role: string;
+  charity_id: string | null;
+  charity_percentage: number;
+};
+
+type Charity = {
+  name: string;
 };
 
 export default function DashboardPage() {
@@ -15,6 +21,7 @@ export default function DashboardPage() {
   const router = useRouter();
 
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [charity, setCharity] = useState<Charity | null>(null);
   const [scoresCount, setScoresCount] = useState<number>(0);
   const [loading, setLoading] = useState(true);
 
@@ -29,15 +36,28 @@ export default function DashboardPage() {
         return;
       }
 
-      // Fetch profile
+      // Fetch profile with charity info
       const { data: profileData } = await supabase
         .from("profiles")
-        .select("full_name, role")
+        .select("full_name, role, charity_id, charity_percentage")
         .eq("id", user.id)
         .single();
 
       if (profileData) {
         setProfile(profileData);
+
+        // Fetch selected charity details
+        if (profileData.charity_id) {
+          const { data: charityData } = await supabase
+            .from("charities")
+            .select("name")
+            .eq("id", profileData.charity_id)
+            .single();
+
+          if (charityData) {
+            setCharity(charityData);
+          }
+        }
       }
 
       // Fetch scores count
@@ -82,49 +102,73 @@ export default function DashboardPage() {
               </p>
             </div>
 
-            <Link
-              href="/dashboard/scores"
-              className="inline-flex items-center justify-center rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-500"
-            >
-              Manage Scores ⛳
-            </Link>
+            <div className="flex flex-wrap items-center gap-3">
+              <Link
+                href="/dashboard/scores"
+                className="inline-flex items-center justify-center rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-500"
+              >
+                Manage Scores ⛳
+              </Link>
+              <Link
+                href="/dashboard/charity"
+                className="inline-flex items-center justify-center rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+              >
+                My Charity 🎗️
+              </Link>
+            </div>
           </div>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {/* Stats Grid - 5 Cards including Charity */}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          {/* Card 1: Subscription */}
           <div className="rounded-2xl border border-gray-200/80 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
             <p className="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
               Subscription
             </p>
-            <h2 className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
+            <h2 className="mt-2 text-xl font-bold text-gray-900 dark:text-white">
               Inactive
             </h2>
             <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">
-              Pick a plan to enter draws
+              Pick a plan to enter
             </p>
           </div>
 
+          {/* Card 2: Charity */}
+          <div className="rounded-2xl border border-gray-200/80 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+            <p className="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+              My Charity
+            </p>
+            <h2 className="mt-2 text-xl font-bold text-gray-900 dark:text-white truncate" title={charity?.name || "Not selected"}>
+              {charity?.name || "Not selected"}
+            </h2>
+            <p className="mt-1 text-xs text-emerald-600 dark:text-emerald-400">
+              Contribution: {profile?.charity_percentage || 10}%
+            </p>
+          </div>
+
+          {/* Card 3: Golf Scores */}
           <div className="rounded-2xl border border-gray-200/80 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
             <p className="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
               Golf Scores
             </p>
-            <h2 className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
+            <h2 className="mt-2 text-xl font-bold text-gray-900 dark:text-white">
               {scoresCount} / 5
             </h2>
             <Link
               href="/dashboard/scores"
               className="mt-1 inline-block text-xs font-medium text-emerald-600 hover:underline dark:text-emerald-400"
             >
-              Add / View scores &rarr;
+              Add / View &rarr;
             </Link>
           </div>
 
+          {/* Card 4: Draws */}
           <div className="rounded-2xl border border-gray-200/80 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
             <p className="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
               Draws
             </p>
-            <h2 className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
+            <h2 className="mt-2 text-xl font-bold text-gray-900 dark:text-white">
               0
             </h2>
             <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
@@ -132,11 +176,12 @@ export default function DashboardPage() {
             </p>
           </div>
 
+          {/* Card 5: Total Winnings */}
           <div className="rounded-2xl border border-gray-200/80 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
             <p className="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
               Total Winnings
             </p>
-            <h2 className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
+            <h2 className="mt-2 text-xl font-bold text-gray-900 dark:text-white">
               ₹0
             </h2>
             <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
