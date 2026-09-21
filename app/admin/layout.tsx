@@ -82,7 +82,7 @@ export default function AdminLayout({
   const adminNavItems: NavItem[] = [
     {
       label: "Command Center",
-      href: "/dashboard",
+      href: "/admin",
       badge: "Admin",
       icon: (active) => (
         <svg
@@ -354,7 +354,7 @@ export default function AdminLayout({
       <aside className="fixed left-0 top-0 z-40 hidden h-screen w-64 flex-col justify-between border-r border-amber-200/60 bg-white/95 backdrop-blur-xl p-5 md:flex dark:border-amber-900/30 dark:bg-[#0b101b]/95 shadow-sm">
         {/* Top: Logo & Admin Tag */}
         <div>
-          <Link href="/dashboard" className="flex items-center space-x-2.5 group">
+          <Link href="/admin" className="flex items-center space-x-2.5 group">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-600 text-white shadow-xs transition group-hover:scale-105 group-hover:bg-amber-700 dark:bg-amber-500 dark:text-slate-950">
               <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
@@ -379,8 +379,8 @@ export default function AdminLayout({
 
             {adminNavItems.map((item) => {
               const isActive =
-                item.href === "/dashboard"
-                  ? pathname === "/dashboard"
+                item.href === "/admin"
+                  ? pathname === "/admin"
                   : pathname?.startsWith(item.href);
 
               return (
@@ -474,7 +474,7 @@ export default function AdminLayout({
       {/* MOBILE STICKY HEADER & DRAWER                                  */}
       {/* ============================================================== */}
       <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-amber-200/60 bg-white/95 px-4 backdrop-blur-md md:hidden dark:border-amber-900/30 dark:bg-[#080c14]/95">
-        <Link href="/dashboard" className="flex items-center space-x-2">
+        <Link href="/admin" className="flex items-center space-x-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-600 text-white dark:bg-amber-500 dark:text-slate-950">
             <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
@@ -523,8 +523,8 @@ export default function AdminLayout({
           <div className="space-y-1.5">
             {adminNavItems.map((item) => {
               const isActive =
-                item.href === "/dashboard"
-                  ? pathname === "/dashboard"
+                item.href === "/admin"
+                  ? pathname === "/admin"
                   : pathname?.startsWith(item.href);
 
               return (

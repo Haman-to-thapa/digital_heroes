@@ -25,6 +25,19 @@ export function ThemeToggle({ variant = "icon", className = "" }: ThemeTogglePro
       setTheme("dark");
       document.documentElement.classList.add("dark");
     }
+
+    // Listen for theme changes from other ThemeToggle instances on the same page
+    function handleThemeChange(e: Event) {
+      const customEvent = e as CustomEvent<"light" | "dark">;
+      if (customEvent.detail) {
+        setTheme(customEvent.detail);
+      }
+    }
+
+    window.addEventListener("theme-change", handleThemeChange);
+    return () => {
+      window.removeEventListener("theme-change", handleThemeChange);
+    };
   }, []);
 
   function setThemeMode(next: "light" | "dark") {
@@ -35,6 +48,8 @@ export function ThemeToggle({ variant = "icon", className = "" }: ThemeTogglePro
     } else {
       document.documentElement.classList.remove("dark");
     }
+    // Broadcast to all other ThemeToggle instances
+    window.dispatchEvent(new CustomEvent("theme-change", { detail: next }));
   }
 
   function toggleTheme() {
@@ -88,12 +103,12 @@ export function ThemeToggle({ variant = "icon", className = "" }: ThemeTogglePro
           onClick={() => setThemeMode("dark")}
           className={`flex flex-1 items-center justify-center space-x-1.5 rounded-lg py-1.5 px-2.5 text-xs font-semibold transition-all cursor-pointer ${
             theme === "dark"
-              ? "bg-slate-800 text-indigo-300 shadow-xs ring-1 ring-slate-700/80 dark:bg-emerald-950/70 dark:text-emerald-300 dark:ring-emerald-800/60"
+              ? "bg-white text-amber-600 shadow-xs ring-1 ring-slate-200/80 dark:bg-amber-950/60 dark:text-amber-300 dark:ring-amber-700/60"
               : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
           }`}
         >
           <svg
-            className="h-3.5 w-3.5 text-indigo-400 dark:text-emerald-400"
+            className="h-3.5 w-3.5 text-amber-500 dark:text-amber-400"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -118,16 +133,16 @@ export function ThemeToggle({ variant = "icon", className = "" }: ThemeTogglePro
         onClick={toggleTheme}
         type="button"
         className={`inline-flex items-center space-x-2 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-xs transition hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800 cursor-pointer ${className}`}
-        aria-label="Toggle theme"
+        aria-label="Toggle theme mode"
       >
         {theme === "light" ? (
           <>
             <svg
-              className="h-3.5 w-3.5 text-amber-500"
+              className="h-4 w-4 text-amber-500"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
-              strokeWidth="2.5"
+              strokeWidth="2"
             >
               <path
                 strokeLinecap="round"
@@ -135,16 +150,16 @@ export function ThemeToggle({ variant = "icon", className = "" }: ThemeTogglePro
                 d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
               />
             </svg>
-            <span>Light Mode</span>
+            <span>Light</span>
           </>
         ) : (
           <>
             <svg
-              className="h-3.5 w-3.5 text-indigo-400 dark:text-emerald-400"
+              className="h-4 w-4 text-amber-400"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
-              strokeWidth="2.5"
+              strokeWidth="2"
             >
               <path
                 strokeLinecap="round"
@@ -152,12 +167,13 @@ export function ThemeToggle({ variant = "icon", className = "" }: ThemeTogglePro
                 d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
               />
             </svg>
-            <span>Dark Mode</span>
+            <span>Dark</span>
           </>
         )}
       </button>
     );
   }
+
 
   // Default icon button with enhanced visibility & active indicator
   return (

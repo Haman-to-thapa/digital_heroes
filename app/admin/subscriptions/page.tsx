@@ -77,69 +77,67 @@ export default function AdminSubscriptionsPage() {
   });
 
   return (
-    <main className="min-h-screen bg-slate-50 p-4 sm:p-6 lg:p-8 text-slate-900 dark:bg-[#070b12] dark:text-slate-100">
-      <div className="mx-auto max-w-7xl space-y-8">
-        {/* Header & Breadcrumb */}
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/80 pb-6 dark:border-slate-800/80">
-          <div>
-            <div className="flex items-center space-x-2">
-              <span className="rounded-full bg-amber-500/10 px-3 py-1 text-xs font-bold text-amber-700 dark:text-amber-300">
-                👑 Admin Control Center
-              </span>
-              <span className="text-xs text-slate-400">•</span>
-              <span className="text-xs text-slate-500 dark:text-slate-400">
-                Subscriber Management
-              </span>
-            </div>
-
-            <h1 className="mt-2 text-2xl sm:text-3xl font-black tracking-tight text-slate-950 dark:text-white">
-              Platform Subscribers Audit 💳
-            </h1>
-            <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-              Live monitor of all enrolled members, active recurring cycles, and monthly sweepstakes prize pool funding.
-            </p>
+    <div className="space-y-8">
+      {/* Header & Breadcrumb */}
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/80 pb-6 dark:border-slate-800/80">
+        <div>
+          <div className="flex items-center space-x-2">
+            <span className="rounded-full bg-amber-500/10 px-3 py-1 text-xs font-bold text-amber-700 dark:text-amber-300">
+              👑 Admin Control Center
+            </span>
+            <span className="text-xs text-slate-400">•</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">
+              Subscriber Management
+            </span>
           </div>
 
-          <div className="flex items-center space-x-3">
-            <button
-              type="button"
-              onClick={loadSubscribers}
-              disabled={loading}
-              className="inline-flex items-center space-x-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-xs font-semibold text-slate-700 shadow-xs transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 cursor-pointer disabled:opacity-50"
-            >
-              <svg className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-              <span>{loading ? "Refreshing..." : "Refresh Data"}</span>
-            </button>
-
-            <Link
-              href="/admin/draw"
-              className="inline-flex items-center space-x-2 rounded-xl bg-slate-950 px-4 py-2.5 text-xs font-semibold text-white shadow-xs transition hover:bg-slate-800 dark:bg-emerald-600 dark:hover:bg-emerald-500"
-            >
-              <span>Admin Draw Control</span>
-              <span>→</span>
-            </Link>
-          </div>
+          <h1 className="mt-2 text-2xl sm:text-3xl font-black tracking-tight text-slate-950 dark:text-white">
+            Platform Subscribers Audit 💳
+          </h1>
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+            Live monitor of all enrolled members, active recurring cycles, and monthly sweepstakes prize pool funding.
+          </p>
         </div>
 
-        {/* Stats Metrics Cards */}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {/* Card 1: Active Subscribers */}
-          <div className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                Active Subscribers
-              </span>
-              <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
-            </div>
-            <p className="mt-2 text-3xl font-black text-emerald-600 dark:text-emerald-400">
-              {stats?.activeSubscribers ?? 0}
-            </p>
-            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-              Out of {stats?.totalSubscribers ?? 0} total enrolled
-            </p>
+        <div className="flex items-center space-x-3">
+          <button
+            type="button"
+            onClick={loadSubscribers}
+            disabled={loading}
+            className="inline-flex items-center space-x-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-xs font-semibold text-slate-700 shadow-xs transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 cursor-pointer disabled:opacity-50"
+          >
+            <svg className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            <span>{loading ? "Refreshing..." : "Refresh Data"}</span>
+          </button>
+
+          <Link
+            href="/admin/draw"
+            className="inline-flex items-center space-x-2 rounded-xl bg-amber-600 px-4 py-2.5 text-xs font-semibold text-white shadow-xs transition hover:bg-amber-500"
+          >
+            <span>Admin Draw Control →</span>
+          </Link>
+        </div>
+      </div>
+
+      {/* Stats Metrics Cards */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {/* Card 1: Active Subscribers */}
+        <div className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              Active Subscribers
+            </span>
+            <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
           </div>
+          <p className="mt-2 text-3xl font-black text-emerald-600 dark:text-emerald-400">
+            {stats?.activeSubscribers ?? 0}
+          </p>
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            Out of {stats?.totalSubscribers ?? 0} total enrolled
+          </p>
+        </div>
 
           {/* Card 2: Prize Pool Generated */}
           <div className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900">
@@ -412,6 +410,5 @@ export default function AdminSubscriptionsPage() {
           </div>
         </div>
       </div>
-    </main>
   );
 }

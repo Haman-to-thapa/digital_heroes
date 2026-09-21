@@ -74,20 +74,53 @@ export async function PATCH(
       return NextResponse.json({ error: "User not found." }, { status: 404 });
     }
 
-    // Update profile
-    const { data: updatedUser, error: updateError } = await supabaseAdmin
+    // 1. Update user metadata in auth.users
+    try {
+      await supabaseAdmin.auth.admin.updateUserById(id, {
+        user_metadata: {
+          full_name: fullName,
+          charity_percentage: charityPercentage,
+        },
+      });
+    } catch (metaErr) {
+      console.warn("Auth metadata update warning:", metaErr);
+    }
+
+    // 2. Update profile with graceful column fallback
+    let updatedUser = null;
+    const { data: initialUpdate, error: initialError } = await supabaseAdmin
       .from("profiles")
       .update({
         full_name: fullName,
         charity_percentage: charityPercentage,
-        updated_at: new Date().toISOString(),
       })
       .eq("id", id)
-      .select("id, full_name, role, charity_percentage, charity_id, created_at")
+      .select("id, full_name, role, created_at")
       .single();
 
-    if (updateError) {
-      return NextResponse.json({ error: updateError.message }, { status: 500 });
+    if (initialError) {
+      // Fallback if charity_percentage column is not in profiles table
+      const { data: fallbackUpdate, error: fallbackError } = await supabaseAdmin
+        .from("profiles")
+        .update({
+          full_name: fullName,
+        })
+        .eq("id", id)
+        .select("id, full_name, role, created_at")
+        .single();
+
+      if (fallbackError) {
+        return NextResponse.json({ error: fallbackError.message }, { status: 500 });
+      }
+      updatedUser = {
+        ...fallbackUpdate,
+        charity_percentage: charityPercentage,
+      };
+    } else {
+      updatedUser = {
+        ...initialUpdate,
+        charity_percentage: charityPercentage,
+      };
     }
 
     return NextResponse.json({

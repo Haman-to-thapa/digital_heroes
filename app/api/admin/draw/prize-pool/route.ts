@@ -42,7 +42,7 @@ export async function POST() {
       .toISOString()
       .split("T")[0];
 
-    const { data: draw, error: drawError } =
+    let { data: draw, error: drawError } =
       await supabaseAdmin
         .from("draws")
         .select("*")
@@ -57,10 +57,24 @@ export async function POST() {
     }
 
     if (!draw) {
-      return NextResponse.json(
-        { error: "Current draw not found" },
-        { status: 404 }
-      );
+      const { data: newDraw, error: createError } = await supabaseAdmin
+        .from("draws")
+        .insert({
+          draw_month: drawMonth,
+          draw_type: "random",
+          status: "draft",
+          total_prize_pool: 0,
+        })
+        .select()
+        .single();
+
+      if (createError || !newDraw) {
+        return NextResponse.json(
+          { error: "Current draw not found and could not be initialized." },
+          { status: 500 }
+        );
+      }
+      draw = newDraw;
     }
 
     // Count distinct active subscribers

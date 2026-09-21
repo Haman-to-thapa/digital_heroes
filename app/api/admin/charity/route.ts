@@ -29,7 +29,7 @@ export async function GET() {
     // 1. Fetch all donations
     const { data: donations, error: donError } = await supabaseAdmin
       .from("donations")
-      .select("*, charities(id, name, website_url)")
+      .select("*, charities(id, name, slug, description, image_url)")
       .order("created_at", { ascending: false });
 
     if (donError) {
@@ -39,7 +39,7 @@ export async function GET() {
     // 2. Fetch all charities
     const { data: charities } = await supabaseAdmin
       .from("charities")
-      .select("*");
+      .select("id, name, slug, description, image_url, upcoming_event, is_featured, is_active, created_at");
 
     // 3. Fetch user profiles for donor names and emails
     const userIds = Array.from(new Set((donations || []).map((d) => d.user_id)));
@@ -83,7 +83,7 @@ export async function GET() {
         id: charity.id,
         name: charity.name,
         description: charity.description,
-        website_url: charity.website_url,
+        image_url: charity.image_url,
         totalAmount,
         donationsCount: charityDonations.length,
         uniqueDonors,

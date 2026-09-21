@@ -141,45 +141,43 @@ export default function AdminWinnersPage() {
       : "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-400";
 
   return (
-    <main className="min-h-screen bg-slate-50 p-4 sm:p-6 lg:p-8 dark:bg-[#070b12] text-slate-900 dark:text-slate-100">
-      <div className="mx-auto max-w-7xl space-y-8">
-
-        {/* Header */}
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/80 pb-6 dark:border-slate-800/80">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="rounded-full bg-amber-500/10 px-3 py-1 text-xs font-bold text-amber-700 dark:text-amber-300">
-                👑 Admin Control Center
-              </span>
-              <span className="text-xs text-slate-400">•</span>
-              <span className="text-xs text-slate-500 dark:text-slate-400">Winner Verification & Payouts</span>
-            </div>
-            <h1 className="mt-2 text-2xl sm:text-3xl font-black tracking-tight text-slate-950 dark:text-white">
-              Winner Verification & Payout Control 🏆
-            </h1>
-            <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-              Review uploaded score proof screenshots, approve or reject, and release cash payouts.
-            </p>
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/80 pb-6 dark:border-slate-800/80">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="rounded-full bg-amber-500/10 px-3 py-1 text-xs font-bold text-amber-700 dark:text-amber-300">
+              👑 Admin Control Center
+            </span>
+            <span className="text-xs text-slate-400">•</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">Winner Verification & Payouts</span>
           </div>
-          <div className="flex items-center gap-3 flex-wrap">
-            <button
-              onClick={loadWinners}
-              disabled={loading}
-              className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 shadow-xs hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 cursor-pointer"
-            >
-              <svg className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-              Refresh
-            </button>
-            <Link href="/admin/draw" className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
-              🎲 Draw Controller
-            </Link>
-            <Link href="/dashboard" className="rounded-xl bg-amber-600 px-4 py-2.5 text-xs font-bold text-white hover:bg-amber-500">
-              ← Command Center
-            </Link>
-          </div>
+          <h1 className="mt-2 text-2xl sm:text-3xl font-black tracking-tight text-slate-950 dark:text-white">
+            Winner Verification & Payout Control 🏆
+          </h1>
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+            Review uploaded score proof screenshots, approve or reject, and release cash payouts.
+          </p>
         </div>
+        <div className="flex items-center gap-3 flex-wrap">
+          <button
+            onClick={loadWinners}
+            disabled={loading}
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 shadow-xs hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 cursor-pointer"
+          >
+            <svg className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Refresh
+          </button>
+          <Link href="/admin/draw" className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
+            🎲 Draw Controller
+          </Link>
+          <Link href="/admin" className="rounded-xl bg-amber-600 px-4 py-2.5 text-xs font-bold text-white hover:bg-amber-500 transition">
+            ← Command Center
+          </Link>
+        </div>
+      </div>
 
         {/* KPI Cards */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
@@ -362,7 +360,6 @@ export default function AdminWinnersPage() {
             </div>
           )}
         </div>
-      </div>
 
       {/* Lightbox */}
       {selectedProofUrl && selectedProofWinner && (
@@ -446,6 +443,6 @@ export default function AdminWinnersPage() {
           </div>
         </div>
       )}
-    </main>
+    </div>
   );
 }

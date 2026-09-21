@@ -46,8 +46,8 @@ export function Navbar() {
     }
   }
 
-  // Hide the public navbar on /dashboard routes since it has its own dedicated sidebar & mobile layout
-  if (pathname?.startsWith("/dashboard")) {
+  // Hide the public navbar on /dashboard and /admin routes since they have their own dedicated sidebar & mobile layout
+  if (pathname?.startsWith("/dashboard") || pathname?.startsWith("/admin")) {
     return null;
   }
 
