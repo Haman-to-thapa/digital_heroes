@@ -78,6 +78,16 @@ export function Navbar() {
               >
                 Charities
               </Link>
+              <Link
+                href="/dashboard/subscription"
+                className={`rounded-lg px-3 py-2 text-sm font-medium transition ${
+                  pathname === "/dashboard/subscription"
+                    ? "bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white"
+                    : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                }`}
+              >
+                Subscription
+              </Link>
               <button
                 onClick={handleLogout}
                 className="rounded-lg px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/40 cursor-pointer"

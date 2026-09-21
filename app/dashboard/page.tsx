@@ -132,6 +132,12 @@ export default function DashboardPage() {
             <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">
               Pick a plan to enter
             </p>
+            <Link
+              href="/dashboard/subscription"
+              className="mt-1 inline-block text-xs font-medium text-emerald-600 hover:underline dark:text-emerald-400"
+            >
+              Choose plan &rarr;
+            </Link>
           </div>
 
           {/* Card 2: Charity */}
